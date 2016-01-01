@@ -9,6 +9,8 @@
 import Foundation
 import OpenGLES
 
+// FIXME: these are OpenGL 3 (desktop) shaders
+
 let basic33VertexFunc =
 "#version 330 core\n" +
 "layout(location = 0) in vec3 position;\n" +
