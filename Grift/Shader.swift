@@ -38,14 +38,14 @@ extension String {
         return substringWithRange(range)
     }
     
-    init(block: (UnsafeMutablePointer<Int8>, Int) -> Void) {
-        var result: String? = ""
-        var info = [GLchar](count: 512, repeatedValue: 0)
+    init(length: Int, unsafeMutableBufferPointer: (UnsafeMutableBufferPointer<Int8>) -> Void) {
+        var result: String? = nil
+        var info = [Int8](count: length+1, repeatedValue: 0)
         info.withUnsafeMutableBufferPointer({ (inout p: UnsafeMutableBufferPointer<Int8>) in
-            block(p.baseAddress, 512-1)
+            unsafeMutableBufferPointer(p)
             result = String.fromCString(p.baseAddress)
         })
-        self = result!
+        self = result == nil ? "" : result!
     }
 }
 
@@ -71,9 +71,10 @@ class Shader {
     }
     
     func getCompileInfo() -> String? {
-        return String(block: { (p: UnsafeMutablePointer<Int8>, length: Int) in
-            var len = GLsizei(length)
-            glGetShaderInfoLog(self.name, len, &len, p)
+        var logLength: GLint = 0
+        glGetShaderiv(name, GLenum(GL_INFO_LOG_LENGTH), &logLength)
+        return String(length: Int(logLength), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) -> Void in
+            glGetShaderInfoLog(self.name, GLsizei(logLength), nil, p.baseAddress)
         })
     }
     

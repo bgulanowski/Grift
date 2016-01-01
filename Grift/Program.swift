@@ -9,6 +9,13 @@
 import Foundation
 import OpenGLES
 
+struct Uniform {
+    let name: String
+    let type: GLenum
+    let size: GLint
+    let location: GLint
+}
+
 class Program {
     
     static let UnknownLocation = GLint(-1)
@@ -36,20 +43,42 @@ class Program {
     }
     
     func checkLinkStatus() -> Bool {
-        var res: GLint = 0
-        glGetProgramiv(name, GLenum(GL_LINK_STATUS), &res)
-        return res == GL_TRUE
+        return getProgramValue(GLenum(GL_LINK_STATUS)) == GL_TRUE
     }
     
     func getLinkInfo() -> String {
-        return String(block: { (p: UnsafeMutablePointer<Int8>, length: Int) in
+        let length = getLinkInfoLength()
+        return String(length: Int(length), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) -> Void in
             var len = GLsizei(length)
-            glGetProgramInfoLog(self.name, len, &len, p)
+            glGetProgramInfoLog(self.name, len, &len, p.baseAddress)
         })
     }
     
     func use() {
         glUseProgram(name)
+    }
+    
+    func getLinkInfoLength() -> GLint {
+        return getProgramValue(GLenum(GL_INFO_LOG_LENGTH))
+    }
+    
+    func getActiveUniforms() -> [Uniform] {
+        let maxLength = maxUniformNameLength()
+        var uniforms = [Uniform]()
+        for i in 0 ..< Int(numberOfActiveUniforms()) {
+            uniforms.append(getActiveUniformAtIndex(GLuint(i), maxLength: maxLength))
+        }
+        return uniforms
+    }
+    
+    func getActiveUniformAtIndex(index: GLuint, maxLength: GLint) -> Uniform {
+        var size: GLint = 0
+        var type: GLenum = 0
+        let uniformName = String(length: Int(maxLength), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) in
+            var length: GLsizei = 0
+            glGetActiveUniform(self.name, index, maxLength, &length, &size, &type, p.baseAddress)
+            })
+        return Uniform(name: uniformName, type: type, size: size, location: locationOfUniform(uniformName))
     }
     
     func enableBuffer<T>(buffer: Buffer<T>, name: String) {
@@ -59,6 +88,28 @@ class Program {
             let normalize = name == "normal" ? GL_TRUE : GL_FALSE
             glVertexAttribPointer(GLuint(location), buffer.typeSize, buffer.glType, GLboolean(normalize), 0, UnsafePointer<Void>())
         }
+    }
+    
+    func numberOfActiveUniforms() -> GLint {
+        return getProgramValue(GLenum(GL_ACTIVE_UNIFORMS))
+    }
+    
+    func numberOfActiveAttributes() -> GLint {
+        return getProgramValue(GLenum(GL_ACTIVE_ATTRIBUTES))
+    }
+    
+    func maxUniformNameLength() -> GLint {
+        return getProgramValue(GLenum(GL_ACTIVE_UNIFORM_MAX_LENGTH))
+    }
+    
+    func maxAttributeNameLength() -> GLint {
+        return getProgramValue(GLenum(GL_ACTIVE_ATTRIBUTE_MAX_LENGTH))
+    }
+    
+    func getProgramValue(value: GLenum) -> GLint {
+        var result: GLint = 0
+        glGetProgramiv(name, value, &result )
+        return result
     }
     
     func locationsForAttributes(attributes: [String]) -> [String:GLint] {

@@ -19,6 +19,7 @@
 		847661661C3609D800696B04 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 847661641C3609D800696B04 /* Main.storyboard */; };
 		847661681C3609D800696B04 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 847661671C3609D800696B04 /* Assets.xcassets */; };
 		8476616B1C3609D800696B04 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 847661691C3609D800696B04 /* LaunchScreen.storyboard */; };
+		84A0D3041C360E69000B0B9E /* Grift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 847661381C36082D00696B04 /* Grift.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +36,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 8476615D1C3609D800696B04;
 			remoteInfo = Filch;
+		};
+		84A0D3021C360E62000B0B9E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8476612F1C36082D00696B04 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 847661371C36082D00696B04;
+			remoteInfo = Grift;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -78,6 +86,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				84A0D3041C360E69000B0B9E /* Grift.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -209,6 +218,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				84A0D3031C360E62000B0B9E /* PBXTargetDependency */,
 			);
 			name = Filch;
 			productName = Filch;
@@ -325,6 +335,11 @@
 			isa = PBXTargetDependency;
 			target = 8476615D1C3609D800696B04 /* Filch */;
 			targetProxy = 8476617F1C360A0D00696B04 /* PBXContainerItemProxy */;
+		};
+		84A0D3031C360E62000B0B9E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 847661371C36082D00696B04 /* Grift */;
+			targetProxy = 84A0D3021C360E62000B0B9E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -535,6 +550,7 @@
 				8476614E1C36082D00696B04 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		8476614F1C36082D00696B04 /* Build configuration list for PBXNativeTarget "GriftTests" */ = {
 			isa = XCConfigurationList;
@@ -543,6 +559,7 @@
 				847661511C36082D00696B04 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		847661781C3609D800696B04 /* Build configuration list for PBXNativeTarget "Filch" */ = {
 			isa = XCConfigurationList;
@@ -551,6 +568,7 @@
 				8476617A1C3609D800696B04 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
