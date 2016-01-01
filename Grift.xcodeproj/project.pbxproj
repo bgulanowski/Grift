@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		841B61411C36ECFD00BE6740 /* Framebuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 841B61401C36ECFD00BE6740 /* Framebuffer.swift */; };
 		8476613C1C36082D00696B04 /* Grift.h in Headers */ = {isa = PBXBuildFile; fileRef = 8476613B1C36082D00696B04 /* Grift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		847661431C36082D00696B04 /* Grift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 847661381C36082D00696B04 /* Grift.framework */; };
 		847661481C36082D00696B04 /* GriftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847661471C36082D00696B04 /* GriftTests.swift */; };
@@ -47,6 +48,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		841B61401C36ECFD00BE6740 /* Framebuffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Framebuffer.swift; sourceTree = "<group>"; };
 		847661381C36082D00696B04 /* Grift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Grift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8476613B1C36082D00696B04 /* Grift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Grift.h; sourceTree = "<group>"; };
 		8476613D1C36082D00696B04 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -152,6 +154,7 @@
 				847661531C36084A00696B04 /* Program.swift */,
 				847661541C36084A00696B04 /* Shader.swift */,
 				847661551C36084A00696B04 /* Texture.swift */,
+				841B61401C36ECFD00BE6740 /* Framebuffer.swift */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -303,6 +306,7 @@
 				847661591C36084A00696B04 /* Texture.swift in Sources */,
 				847661561C36084A00696B04 /* Buffer.swift in Sources */,
 				847661581C36084A00696B04 /* Shader.swift in Sources */,
+				841B61411C36ECFD00BE6740 /* Framebuffer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -400,7 +404,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -442,7 +446,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
