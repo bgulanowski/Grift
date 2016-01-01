@@ -42,30 +42,31 @@ class Program {
         self.init(vShader: vertFunc, fShader: fragFunc)
     }
     
-    func checkLinkStatus() -> Bool {
-        return getProgramValue(GLenum(GL_LINK_STATUS)) == GL_TRUE
-    }
-    
-    func getLinkInfo() -> String {
-        let length = getLinkInfoLength()
-        return String(length: Int(length), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) -> Void in
-            var len = GLsizei(length)
-            glGetProgramInfoLog(self.name, len, &len, p.baseAddress)
-        })
-    }
-    
     func use() {
         glUseProgram(name)
     }
     
-    func getLinkInfoLength() -> GLint {
-        return getProgramValue(GLenum(GL_INFO_LOG_LENGTH))
+    func enableBuffer<T>(buffer: Buffer<T>, name: String) {
+        let location = getLocationOfAttribute(name)
+        if location != Program.UnknownLocation {
+            glEnableVertexAttribArray(GLuint(location))
+            let normalize = name == "normal" ? GL_TRUE : GL_FALSE
+            glVertexAttribPointer(GLuint(location), buffer.typeSize, buffer.glType, GLboolean(normalize), 0, UnsafePointer<Void>())
+        }
+    }
+    
+    // MARK: OpenGL/ES state queries
+    
+    func getActiveUniformNames() -> [String] {
+        return getActiveUniforms().map { (uniform: Uniform) in
+            return uniform.name
+        }
     }
     
     func getActiveUniforms() -> [Uniform] {
-        let maxLength = maxUniformNameLength()
+        let maxLength = getMaxUniformNameLength()
         var uniforms = [Uniform]()
-        for i in 0 ..< Int(numberOfActiveUniforms()) {
+        for i in 0 ..< Int(getNumberOfActiveUniforms()) {
             uniforms.append(getActiveUniformAtIndex(GLuint(i), maxLength: maxLength))
         }
         return uniforms
@@ -75,34 +76,40 @@ class Program {
         var size: GLint = 0
         var type: GLenum = 0
         let uniformName = String(length: Int(maxLength), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) in
-            var length: GLsizei = 0
-            glGetActiveUniform(self.name, index, maxLength, &length, &size, &type, p.baseAddress)
+            glGetActiveUniform(self.name, index, maxLength, nil, &size, &type, p.baseAddress)
             })
-        return Uniform(name: uniformName, type: type, size: size, location: locationOfUniform(uniformName))
+        return Uniform(name: uniformName, type: type, size: size, location: getLocationOfUniform(uniformName))
     }
     
-    func enableBuffer<T>(buffer: Buffer<T>, name: String) {
-        let location = locationOfAttribute(name)
-        if location != Program.UnknownLocation {
-            glEnableVertexAttribArray(GLuint(location))
-            let normalize = name == "normal" ? GL_TRUE : GL_FALSE
-            glVertexAttribPointer(GLuint(location), buffer.typeSize, buffer.glType, GLboolean(normalize), 0, UnsafePointer<Void>())
-        }
+    func getLinkInfo() -> String {
+        let length = getLinkInfoLength()
+        return String(length: Int(length), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) -> Void in
+            var len = GLsizei(length)
+            glGetProgramInfoLog(self.name, len, &len, p.baseAddress)
+        })
+    }
+
+    func getLinkStatus() -> Bool {
+        return getProgramValue(GLenum(GL_LINK_STATUS)) == GL_TRUE
     }
     
-    func numberOfActiveUniforms() -> GLint {
+    func getLinkInfoLength() -> GLint {
+        return getProgramValue(GLenum(GL_INFO_LOG_LENGTH))
+    }
+
+    func getNumberOfActiveUniforms() -> GLint {
         return getProgramValue(GLenum(GL_ACTIVE_UNIFORMS))
     }
     
-    func numberOfActiveAttributes() -> GLint {
+    func getNumberOfActiveAttributes() -> GLint {
         return getProgramValue(GLenum(GL_ACTIVE_ATTRIBUTES))
     }
     
-    func maxUniformNameLength() -> GLint {
+    func getMaxUniformNameLength() -> GLint {
         return getProgramValue(GLenum(GL_ACTIVE_UNIFORM_MAX_LENGTH))
     }
     
-    func maxAttributeNameLength() -> GLint {
+    func getMaxAttributeNameLength() -> GLint {
         return getProgramValue(GLenum(GL_ACTIVE_ATTRIBUTE_MAX_LENGTH))
     }
     
@@ -112,15 +119,15 @@ class Program {
         return result
     }
     
-    func locationsForAttributes(attributes: [String]) -> [String:GLint] {
-        return locationsForStrings(attributes, function: locationOfAttribute)
+    func getLocationsForAttributes(attributes: [String]) -> [String:GLint] {
+        return getLocationsForStrings(attributes, function: getLocationOfAttribute)
     }
     
-    func locationsForUniforms(uniforms: [String]) -> [String:GLint] {
-        return locationsForStrings(uniforms, function: locationOfUniform)
+    func getLocationsForUniforms(uniforms: [String]) -> [String:GLint] {
+        return getLocationsForStrings(uniforms, function: getLocationOfUniform)
     }
     
-    func locationsForStrings(strings: [String], function: (String) -> GLint) -> [String:GLint] {
+    func getLocationsForStrings(strings: [String], function: (String) -> GLint) -> [String:GLint] {
         var results = [String:GLint]()
         for attribute in strings {
             results[attribute] = function(attribute)
@@ -128,19 +135,19 @@ class Program {
         return results
     }
     
-    func locationOfAttribute(attribute: String) -> GLint {
-        return locationForString(attribute, block: { (p: UnsafePointer<Int8>) in
+    func getLocationOfAttribute(attribute: String) -> GLint {
+        return getLocationForString(attribute, block: { (p: UnsafePointer<Int8>) in
             return glGetAttribLocation(self.name, p)
         })
     }
     
-    func locationOfUniform(uniform: String) -> GLint {
-        return locationForString(uniform, block: { (p: UnsafePointer<Int8>) in
+    func getLocationOfUniform(uniform: String) -> GLint {
+        return getLocationForString(uniform, block: { (p: UnsafePointer<Int8>) in
             return glGetUniformLocation(self.name, p)
         })
     }
     
-    func locationForString(string: String, block: (UnsafePointer<Int8>) -> GLint ) -> GLint {
+    func getLocationForString(string: String, block: (UnsafePointer<Int8>) -> GLint ) -> GLint {
         var result: GLint = 0
         string.withCString { (p: UnsafePointer<Int8>) in
             result = block(p)

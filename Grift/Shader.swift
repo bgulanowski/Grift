@@ -30,25 +30,6 @@ let basic33FragFunc =
 "    vFragColor = vColour;\n" +
 "}"
 
-extension String {
-    subscript(range: Range<Int>) -> String {
-        let start = startIndex.advancedBy(range.startIndex)
-        let end = startIndex.advancedBy(range.endIndex)
-        let range = Range<String.Index>(start: start, end: end)
-        return substringWithRange(range)
-    }
-    
-    init(length: Int, unsafeMutableBufferPointer: (UnsafeMutableBufferPointer<Int8>) -> Void) {
-        var result: String? = nil
-        var info = [Int8](count: length+1, repeatedValue: 0)
-        info.withUnsafeMutableBufferPointer({ (inout p: UnsafeMutableBufferPointer<Int8>) in
-            unsafeMutableBufferPointer(p)
-            result = String.fromCString(p.baseAddress)
-        })
-        self = result == nil ? "" : result!
-    }
-}
-
 class Shader {
     
     let name: GLuint
@@ -57,26 +38,37 @@ class Shader {
         name = glCreateShader(type)
         source.withCString { (string: UnsafePointer<Int8>) in
             glShaderSource(name, 1, [string], [GLint(source.utf8.count)])
-            glCompileShader(name)
-            if !getCompileStatus() {
-                print("Failed to compile shader \(source[0..<64]); error: \(getCompileInfo())")
-            }
+        }
+        glCompileShader(name)
+        if !getCompileStatus() {
+            print("Failed to compile shader \(source[0..<64]); error: \(getCompileInfo())")
         }
     }
     
+    // MARK: OpenGL/ES state queries
+    
     func getCompileStatus() -> Bool {
-        var result: GLint = 0
-        glGetShaderiv(name, GLenum(GL_COMPILE_STATUS), &result)
-        return result == GL_TRUE
+        return getShaderProperty(GLenum(GL_COMPILE_STATUS)) == GL_TRUE
     }
     
     func getCompileInfo() -> String? {
-        var logLength: GLint = 0
-        glGetShaderiv(name, GLenum(GL_INFO_LOG_LENGTH), &logLength)
+        let logLength = getCompileInfoLength()
         return String(length: Int(logLength), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) -> Void in
             glGetShaderInfoLog(self.name, GLsizei(logLength), nil, p.baseAddress)
         })
     }
+    
+    func getCompileInfoLength() -> GLint {
+        return getShaderProperty(GLenum(GL_INFO_LOG_LENGTH))
+    }
+    
+    func getShaderProperty(property: GLenum) -> GLint {
+        var value: GLint = 0
+        glGetShaderiv(name, property, &value)
+        return value
+    }
+    
+    // MARK: convenience factories
     
     class func newVertexShader(source: String) -> Shader {
         return Shader(source: source, type: GLenum(GL_VERTEX_SHADER))
@@ -95,4 +87,23 @@ class Shader {
     }
 }
 
+// MARK: - String Support
 
+extension String {
+    subscript(range: Range<Int>) -> String {
+        let start = startIndex.advancedBy(range.startIndex)
+        let end = startIndex.advancedBy(range.endIndex)
+        let range = Range<String.Index>(start: start, end: end)
+        return substringWithRange(range)
+    }
+    
+    init(maxLength: Int, unsafeMutableBufferPointer: (UnsafeMutableBufferPointer<Int8>) -> Void) {
+        var result: String? = nil
+        var info = [Int8](count: maxLength+1, repeatedValue: 0)
+        info.withUnsafeMutableBufferPointer({ (inout p: UnsafeMutableBufferPointer<Int8>) in
+            unsafeMutableBufferPointer(p)
+            result = String.fromCString(p.baseAddress)
+        })
+        self = result == nil ? "" : result!
+    }
+}
