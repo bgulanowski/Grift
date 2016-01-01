@@ -9,27 +9,37 @@
 import Foundation
 import OpenGLES
 
-public struct Uniform {
+public struct Variable {
     let name: String
     let type: GLenum
     let size: GLint
-    let location: GLint
+    let location: GLuint
 }
+
+typealias GetActiveVariableFunc = (GLuint, GLuint, GLsizei, UnsafeMutablePointer<GLsizei>, UnsafeMutablePointer<GLint>, UnsafeMutablePointer<GLenum>, UnsafeMutablePointer<GLchar>) -> Void
+typealias GetVariableLocationFunc = (GLuint, UnsafePointer<GLchar>) -> GLint
 
 public class Program {
     
     static let UnknownLocation = GLint(-1)
     
     var name: GLuint = 0
-    var uniforms = [String:Uniform]()
+    var uniforms = [String:Variable]()
+    var attribs = [String:Variable]()
     
     public init(vShader: Shader, fShader: Shader) {
         name = glCreateProgram()
         glAttachShader(name, vShader.name)
         glAttachShader(name, fShader.name)
         glLinkProgram(name)
+        if !getLinkStatus() {
+            print("Failed to link program; error: '\(getLinkInfo())'")
+        }
         for uniform in getActiveUniforms() {
             uniforms[uniform.name] = uniform
+        }
+        for attrib in getActiveAttributes() {
+            attribs[attrib.name] = attrib
         }
     }
     
@@ -72,9 +82,8 @@ public class Program {
     }
     
     public func enableBuffer<T>(buffer: Buffer<T>, name: String) {
-//        let location = getLocationOfAttribute(name)
-//        if location != Program.UnknownLocation {
-        if let location = uniforms[name]?.location {
+        if let location = attribs[name]?.location {
+            buffer.bind()
             glEnableVertexAttribArray(GLuint(location))
             let normalize = name == "normal" ? GL_TRUE : GL_FALSE
             glVertexAttribPointer(GLuint(location), buffer.typeSize, buffer.glType, GLboolean(normalize), 0, UnsafePointer<Void>())
@@ -83,28 +92,52 @@ public class Program {
     
     // MARK: OpenGL/ES state queries
     
-    public func getActiveUniformNames() -> [String] {
-        return getActiveUniforms().map { (uniform: Uniform) in
-            return uniform.name
-        }
+    public func activeAttributeNames() -> [String] {
+        return [String](attribs.keys)
     }
     
-    public func getActiveUniforms() -> [Uniform] {
+    public func activeUniformNames() -> [String] {
+        return [String](uniforms.keys)
+    }
+    
+    public func getActiveAttributes() -> [Variable] {
+        let maxLength = getMaxAttributeNameLength()
+        var attributes = [Variable]()
+        for i in 0 ..< Int(getNumberOfActiveAttributes()) {
+            if let attribute = getActiveAttributeAtIndex(GLuint(i), maxLength: maxLength) {
+                attributes.append(attribute)
+            }
+        }
+        return attributes
+    }
+    
+    public func getActiveUniforms() -> [Variable] {
         let maxLength = getMaxUniformNameLength()
-        var uniforms = [Uniform]()
+        var uniforms = [Variable]()
         for i in 0 ..< Int(getNumberOfActiveUniforms()) {
-            uniforms.append(getActiveUniformAtIndex(GLuint(i), maxLength: maxLength))
+            if let uniform = getActiveUniformAtIndex(GLuint(i), maxLength: maxLength) {
+                uniforms.append(uniform)
+            }
         }
         return uniforms
     }
     
-    func getActiveUniformAtIndex(index: GLuint, maxLength: GLint) -> Uniform {
+    func getActiveAttributeAtIndex(index: GLuint, maxLength: GLint) -> Variable? {
+        return getActiveVariableAtIndex(index, maxLength: maxLength, getVariable: glGetActiveAttrib, getLocation: glGetAttribLocation)
+    }
+    
+    func getActiveUniformAtIndex(index: GLuint, maxLength: GLint) -> Variable? {
+        return getActiveVariableAtIndex(index, maxLength: maxLength, getVariable: glGetActiveUniform, getLocation: glGetUniformLocation)
+    }
+    
+    func getActiveVariableAtIndex(index: GLuint, maxLength: GLint, getVariable: GetActiveVariableFunc, getLocation: GetVariableLocationFunc) -> Variable? {
         var size: GLint = 0
         var type: GLenum = 0
-        let uniformName = String(length: Int(maxLength), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) in
-            glGetActiveUniform(self.name, index, maxLength, nil, &size, &type, p.baseAddress)
-            })
-        return Uniform(name: uniformName, type: type, size: size, location: getLocationOfUniform(uniformName))
+        let variableName = String(length: Int(maxLength), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) in
+            getVariable(self.name, index, maxLength, nil, &size, &type, p.baseAddress)
+        })
+        let location = getVariableLocation(variableName, getLocation: getLocation)
+        return location == Program.UnknownLocation ? nil : Variable(name: variableName, type: type, size: size, location: GLuint(location))
     }
     
     func getLinkInfo() -> String {
@@ -162,21 +195,17 @@ public class Program {
     }
     
     func getLocationOfAttribute(attribute: String) -> GLint {
-        return getLocationForString(attribute, block: { (p: UnsafePointer<Int8>) in
-            return glGetAttribLocation(self.name, p)
-        })
+        return getVariableLocation(attribute, getLocation: glGetAttribLocation)
     }
     
     func getLocationOfUniform(uniform: String) -> GLint {
-        return getLocationForString(uniform, block: { (p: UnsafePointer<Int8>) in
-            return glGetUniformLocation(self.name, p)
-        })
+        return getVariableLocation(uniform, getLocation: glGetUniformLocation)
     }
     
-    func getLocationForString(string: String, block: (UnsafePointer<Int8>) -> GLint ) -> GLint {
+    func getVariableLocation(variable: String, getLocation: GetVariableLocationFunc) -> GLint {
         var result: GLint = 0
-        string.withCString { (p: UnsafePointer<Int8>) in
-            result = block(p)
+        variable.withCString { (p: UnsafePointer<Int8>) in
+            result = getLocation(self.name, p)
         }
         return result
     }
