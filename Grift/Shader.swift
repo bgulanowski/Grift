@@ -29,11 +29,11 @@ let basic33FragFunc =
 "    vFragColor = vColour;\n" +
 "}\n"
 
-class Shader {
+public class Shader {
     
-    let name: GLuint
+    var name: GLuint
     
-    init(source: String, type: GLenum) {
+    public init(source: String, type: GLenum) {
         name = glCreateShader(type)
         source.withCString { (string: UnsafePointer<Int8>) in
             glShaderSource(name, 1, [string], [GLint(source.utf8.count)])
@@ -43,6 +43,17 @@ class Shader {
             let typeName = type == GLenum(GL_VERTEX_SHADER) ? "vertex" : "fragment"
             print("Failed to compile \(typeName) shader; \nError: '\(getCompileInfo())'")
         }
+    }
+    
+    deinit {
+        if name > 0 {
+            delete()
+        }
+    }
+    
+    func delete() {
+        glDeleteShader(name)
+        name = 0
     }
     
     // MARK: OpenGL/ES state queries
@@ -70,19 +81,46 @@ class Shader {
     
     // MARK: convenience factories
     
-    class func newVertexShader(source: String) -> Shader {
+    public class func newVertexShaderWithName(name: String) -> Shader? {
+        return newShaderWithName(name, type: GLenum(GL_VERTEX_SHADER))
+    }
+    
+    public class func newFragmentShaderWithName(name: String) -> Shader? {
+        return newShaderWithName(name, type: GLenum(GL_FRAGMENT_SHADER))
+    }
+    
+    public class func newShaderWithName(name: String, type: GLenum) -> Shader? {
+        if let url = NSBundle.mainBundle().URLForResource(name, withExtension: type == GLenum(GL_VERTEX_SHADER) ? "vp" : "fp") {
+            return newShaderWithURL(url, type: type)
+        }
+        else {
+            return nil
+        }
+    }
+    
+    public class func newShaderWithURL(url: NSURL, type: GLenum) -> Shader? {
+        do {
+            let source = try String(contentsOfURL: url)
+            return Shader(source: source, type: type)
+        }
+        catch {
+            return nil
+        }
+    }
+    
+    public class func newVertexShader(source: String) -> Shader {
         return Shader(source: source, type: GLenum(GL_VERTEX_SHADER))
     }
     
-    class func newFragmentShader(source: String) -> Shader {
+    public class func newFragmentShader(source: String) -> Shader {
         return Shader(source: source, type: GLenum(GL_FRAGMENT_SHADER))
     }
     
-    class func basic33VertexShader() -> Shader {
+    public class func basic33VertexShader() -> Shader {
         return Shader(source: basic33VertexFunc, type: GLenum(GL_VERTEX_SHADER))
     }
     
-    class func basic33FragmentShader() -> Shader {
+    public class func basic33FragmentShader() -> Shader {
         return Shader(source: basic33FragFunc, type: GLenum(GL_FRAGMENT_SHADER))
     }
 }

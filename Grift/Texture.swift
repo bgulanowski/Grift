@@ -12,7 +12,7 @@ import OpenGLES
 typealias BOOL = Bool
 
 extension Int {
-    func isPowerOf2() -> Bool {
+    public func isPowerOf2() -> Bool {
         var i = 1
         while i < self {
             i <<= 1
@@ -22,18 +22,18 @@ extension Int {
 }
 
 extension CGSize {
-    func isPowerOf2() -> Bool {
+    public func isPowerOf2() -> Bool {
         return Int(width).isPowerOf2() && Int(height).isPowerOf2()
     }
 }
 
-struct Colorf {
+public struct Colorf {
     let r: GLfloat
     let g: GLfloat
     let b: GLfloat
     let a: GLfloat
     
-    init(color: UIColor) {
+    public init(color: UIColor) {
         var r_: CGFloat = 0.0
         var g_: CGFloat = 0.0
         var b_: CGFloat = 0.0
@@ -43,25 +43,36 @@ struct Colorf {
     }
 }
 
-class Texture {
+public class Texture {
     
     let size: CGSize
     let type: GLenum
     let format: GLenum
     var name: GLuint = 0
     
-    init(size: CGSize, type: GLenum, format: GLenum, data: NSData) {
+    public init(size: CGSize, type: GLenum, format: GLenum, data: NSData) {
         self.size = size
         self.type = type
         self.format = format
         createTexture(data)
     }
     
-    convenience init(size: CGSize, data: NSData) {
+    deinit {
+        if name > 0 {
+            delete()
+        }
+    }
+    
+    func delete() {
+        glDeleteTextures(1, &name)
+        name = 0
+    }
+
+    public convenience init(size: CGSize, data: NSData) {
         self.init(size: size, type: GLenum(GL_UNSIGNED_BYTE), format: GLenum(GL_RGBA), data: data)
     }
     
-    convenience init(size: CGSize, color: UIColor) {
+    public convenience init(size: CGSize, color: UIColor) {
         let count = size_t(size.width) * size_t(size.height)
         let colors = [Colorf](count: count, repeatedValue: Colorf(color: color))
         var data: NSData!

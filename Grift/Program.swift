@@ -9,27 +9,37 @@
 import Foundation
 import OpenGLES
 
-struct Uniform {
+public struct Uniform {
     let name: String
     let type: GLenum
     let size: GLint
     let location: GLint
 }
 
-class Program {
+public class Program {
     
     static let UnknownLocation = GLint(-1)
     
-    let name: GLuint
+    var name: GLuint = 0
+    var uniforms = [String:Uniform]()
     
-    init(vShader: Shader, fShader: Shader) {
+    public init(vShader: Shader, fShader: Shader) {
         name = glCreateProgram()
         glAttachShader(name, vShader.name)
         glAttachShader(name, fShader.name)
         glLinkProgram(name)
+        for uniform in getActiveUniforms() {
+            uniforms[uniform.name] = uniform
+        }
     }
     
-    convenience init() {
+    deinit {
+        if name > 0 {
+            delete()
+        }
+    }
+    
+    public convenience init() {
         var vertFunc: Shader!
         var fragFunc: Shader!
         if EAGLContext.currentContext().API == .OpenGLES3 {
@@ -43,13 +53,28 @@ class Program {
         self.init(vShader: vertFunc, fShader: fragFunc)
     }
     
-    func use() {
+    public class func newProgramWithName(name: String) -> Program? {
+        if let vShader = Shader.newVertexShaderWithName(name), fShader = Shader.newFragmentShaderWithName(name) {
+            return Program(vShader: vShader, fShader: fShader)
+        }
+        else {
+            return nil
+        }
+    }
+    
+    func delete() {
+        glDeleteProgram(name)
+        name = 0
+    }
+    
+    public func use() {
         glUseProgram(name)
     }
     
-    func enableBuffer<T>(buffer: Buffer<T>, name: String) {
-        let location = getLocationOfAttribute(name)
-        if location != Program.UnknownLocation {
+    public func enableBuffer<T>(buffer: Buffer<T>, name: String) {
+//        let location = getLocationOfAttribute(name)
+//        if location != Program.UnknownLocation {
+        if let location = uniforms[name]?.location {
             glEnableVertexAttribArray(GLuint(location))
             let normalize = name == "normal" ? GL_TRUE : GL_FALSE
             glVertexAttribPointer(GLuint(location), buffer.typeSize, buffer.glType, GLboolean(normalize), 0, UnsafePointer<Void>())
@@ -58,13 +83,13 @@ class Program {
     
     // MARK: OpenGL/ES state queries
     
-    func getActiveUniformNames() -> [String] {
+    public func getActiveUniformNames() -> [String] {
         return getActiveUniforms().map { (uniform: Uniform) in
             return uniform.name
         }
     }
     
-    func getActiveUniforms() -> [Uniform] {
+    public func getActiveUniforms() -> [Uniform] {
         let maxLength = getMaxUniformNameLength()
         var uniforms = [Uniform]()
         for i in 0 ..< Int(getNumberOfActiveUniforms()) {

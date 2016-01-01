@@ -9,30 +9,70 @@
 import Foundation
 import OpenGLES
 
-struct Float2 {
+public struct Float2 {
+    
     let x: GLfloat
     let y: GLfloat
+    
+    public init(x: GLfloat, y: GLfloat) {
+        self.x = x
+        self.y = y
+    }
+    
+    public init(tuple: (GLfloat, GLfloat)) {
+        x = tuple.0
+        y = tuple.1
+    }
 }
 
-struct Float3 {
+public struct Float3 {
+    
     let x: GLfloat
     let y: GLfloat
     let z: GLfloat
+    
+    public init(x: GLfloat, y: GLfloat, z: GLfloat) {
+        self.x = x
+        self.y = y
+        self.z = z
+    }
+
+    public init(tuple: (GLfloat, GLfloat, GLfloat)) {
+        x = tuple.0
+        y = tuple.1
+        z = tuple.2
+    }
 }
 
-struct Float4 {
+public struct Float4 {
+    
     let x: GLfloat
     let y: GLfloat
     let z: GLfloat
     let w: GLfloat
+    
+    public init(x: GLfloat, y: GLfloat, z: GLfloat, w: GLfloat) {
+        self.x = x
+        self.y = y
+        self.z = z
+        self.w = w
+    }
+    
+    public init(tuple: (GLfloat, GLfloat, GLfloat, GLfloat)) {
+        x = tuple.0
+        y = tuple.1
+        z = tuple.2
+        w = tuple.3
+    }
 }
 
-typealias Point3 = Float3
-typealias Color = Float4
-typealias Normal = Float4
-typealias TexCoord = Float2
+public typealias Point2 = Float2
+public typealias Point3 = Float3
+public typealias Color = Float4
+public typealias Normal = Float3
+public typealias TexCoord = Float2
 
-class Buffer<T> {
+public class Buffer<T> {
     
     var name: GLuint = 0
     var target: GLenum {
@@ -46,14 +86,20 @@ class Buffer<T> {
         return GLenum(0)
     }
     
-    init(elements: [T]) {
+    public init(elements: [T]) {
         count = elements.count
         glGenBuffers(1, &name)
         glBindBuffer(target, name)
         glBufferData(target, elements.count * sizeof(T.Type), elements, GLenum(GL_STATIC_DRAW))
     }
     
-    func bind() {
+    deinit {
+        if name > 0 {
+            delete()
+        }
+    }
+
+    public func bind() {
         glBindBuffer(target, name)
     }
     
@@ -63,25 +109,32 @@ class Buffer<T> {
     }
 }
 
-class IndexBuffer : Buffer<GLuint> {
+public class IndexBuffer : Buffer<GLuint> {
     override var target: GLenum {
         return GLenum(GL_ELEMENT_ARRAY_BUFFER)
     }
     override var glType: GLenum {
         return GLenum(GL_INT)
     }
+    public override init(elements: [GLuint]) {
+        super.init(elements: elements)
+    }
 }
 
-class VertexBuffer<T> : Buffer<T> {
+public class VertexBuffer<T> : Buffer<T> {
     override var target: GLenum {
         return GLenum(GL_ARRAY_BUFFER)
     }
     override var glType: GLenum {
         return GLenum(GL_FLOAT)
     }
+    public override init(elements: [T]) {
+        super.init(elements: elements)
+    }
 }
 
-typealias PointBuffer = VertexBuffer<Point3>
-typealias ColorBuffer = VertexBuffer<Color>
-typealias NormalBuffer = VertexBuffer<Normal>
-typealias TexCoordBuffer = VertexBuffer<TexCoord>
+public typealias Point2Buffer = VertexBuffer<Point2>
+public typealias Point3Buffer = VertexBuffer<Point3>
+public typealias ColorBuffer = VertexBuffer<Color>
+public typealias NormalBuffer = VertexBuffer<Normal>
+public typealias TexCoordBuffer = VertexBuffer<TexCoord>
