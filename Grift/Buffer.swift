@@ -78,16 +78,19 @@ public class Buffer<T> {
     var target: GLenum {
         return GLenum(0)
     }
-    let count: Int
-    var typeSize: GLsizei {
+    var normalize: GLboolean {
+        return GLboolean(GL_FALSE)
+    }
+    public let count: GLsizei
+    public var typeSize: GLsizei {
         return GLsizei(sizeof(T))
     }
-    var glType: GLenum {
+    public var glType: GLenum {
         return GLenum(0)
     }
     
     public init(elements: [T]) {
-        count = elements.count
+        count = GLsizei(elements.count)
         glGenBuffers(1, &name)
         glBindBuffer(target, name)
         glBufferData(target, elements.count * sizeof(T.Type), elements, GLenum(GL_STATIC_DRAW))
@@ -99,8 +102,14 @@ public class Buffer<T> {
         }
     }
 
-    public func bind() {
+    func bind() {
         glBindBuffer(target, name)
+    }
+    
+    func submit(location: GLuint) {
+        bind()
+        glEnableVertexAttribArray(location)
+        glVertexAttribPointer(GLuint(location), typeSize, glType, normalize, 0, UnsafePointer<Void>())
     }
     
     func delete() {
@@ -113,10 +122,10 @@ public class IndexBuffer : Buffer<GLuint> {
     override var target: GLenum {
         return GLenum(GL_ELEMENT_ARRAY_BUFFER)
     }
-    override var glType: GLenum {
+    override public var glType: GLenum {
         return GLenum(GL_INT)
     }
-    public override init(elements: [GLuint]) {
+    override public init(elements: [GLuint]) {
         super.init(elements: elements)
     }
 }
@@ -125,7 +134,7 @@ public class VertexBuffer<T> : Buffer<T> {
     override var target: GLenum {
         return GLenum(GL_ARRAY_BUFFER)
     }
-    override var glType: GLenum {
+    public override var glType: GLenum {
         return GLenum(GL_FLOAT)
     }
     public override init(elements: [T]) {
@@ -136,5 +145,10 @@ public class VertexBuffer<T> : Buffer<T> {
 public typealias Point2Buffer = VertexBuffer<Point2>
 public typealias Point3Buffer = VertexBuffer<Point3>
 public typealias ColorBuffer = VertexBuffer<Color>
-public typealias NormalBuffer = VertexBuffer<Normal>
 public typealias TexCoordBuffer = VertexBuffer<TexCoord>
+
+public class NormalBuffer : VertexBuffer<Normal> {
+    override var normalize: GLboolean {
+        return GLboolean(GL_TRUE)
+    }
+}

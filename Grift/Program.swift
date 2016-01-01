@@ -83,10 +83,7 @@ public class Program {
     
     public func enableBuffer<T>(buffer: Buffer<T>, name: String) {
         if let location = attribs[name]?.location {
-            buffer.bind()
-            glEnableVertexAttribArray(GLuint(location))
-            let normalize = name == "normal" ? GL_TRUE : GL_FALSE
-            glVertexAttribPointer(GLuint(location), buffer.typeSize, buffer.glType, GLboolean(normalize), 0, UnsafePointer<Void>())
+            buffer.submit(GLuint(location))
         }
     }
     
