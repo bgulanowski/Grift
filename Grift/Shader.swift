@@ -9,26 +9,25 @@
 import Foundation
 import OpenGLES
 
-// FIXME: these are OpenGL 3 (desktop) shaders
-
 let basic33VertexFunc =
-"#version 330 core\n" +
+"#version 300 es\n\n" +
 "layout(location = 0) in vec3 position;\n" +
 "layout(location = 1) in vec4 colour;\n" +
-"smooth out vec4 vColour;\n" +
+"out vec4 vColour;\n" +
 "uniform mat4 MVP;\n" +
 "void main() {\n" +
 "    vColour = colour;\n" +
 "    gl_Position = MVP*vec4(position,1);\n" +
-"}"
+"}\n"
 
 let basic33FragFunc =
-"#version 330 core\n" +
-"smooth in vec4 vColour;\n" +
+"#version 300 es\n\n" +
+"precision highp float;" +
+"in vec4 vColour;\n" +
 "layout(location = 0) out vec4 vFragColor;\n" +
 "void main() {\n" +
 "    vFragColor = vColour;\n" +
-"}"
+"}\n"
 
 class Shader {
     
@@ -41,7 +40,8 @@ class Shader {
         }
         glCompileShader(name)
         if !getCompileStatus() {
-            print("Failed to compile shader \(source[0..<64]); error: \(getCompileInfo())")
+            let typeName = type == GLenum(GL_VERTEX_SHADER) ? "vertex" : "fragment"
+            print("Failed to compile \(typeName) shader; \nError: '\(getCompileInfo())'")
         }
     }
     
@@ -51,7 +51,7 @@ class Shader {
         return getShaderProperty(GLenum(GL_COMPILE_STATUS)) == GL_TRUE
     }
     
-    func getCompileInfo() -> String? {
+    func getCompileInfo() -> String {
         let logLength = getCompileInfoLength()
         return String(length: Int(logLength), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) -> Void in
             glGetShaderInfoLog(self.name, GLsizei(logLength), nil, p.baseAddress)
@@ -97,9 +97,9 @@ extension String {
         return substringWithRange(range)
     }
     
-    init(maxLength: Int, unsafeMutableBufferPointer: (UnsafeMutableBufferPointer<Int8>) -> Void) {
+    init(length: Int, unsafeMutableBufferPointer: (UnsafeMutableBufferPointer<Int8>) -> Void) {
         var result: String? = nil
-        var info = [Int8](count: maxLength+1, repeatedValue: 0)
+        var info = [Int8](count: length+1, repeatedValue: 0)
         info.withUnsafeMutableBufferPointer({ (inout p: UnsafeMutableBufferPointer<Int8>) in
             unsafeMutableBufferPointer(p)
             result = String.fromCString(p.baseAddress)

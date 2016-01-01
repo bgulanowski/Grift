@@ -38,6 +38,7 @@ class Program {
         }
         else {
             // TODO: support legacy
+            print("[Grift] Only OpenGLES3 is supported. Please create a GLES3 rendering context.")
         }
         self.init(vShader: vertFunc, fShader: fragFunc)
     }
