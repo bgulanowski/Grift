@@ -91,16 +91,15 @@ public typealias TexCoord = Float2
 public class Buffer<T:Countable> {
 
     var name: GLuint = 0
+    public let count: GLsizei
+
     var target: GLenum {
         return GLenum(0)
     }
     var normalize: GLboolean {
         return GLboolean(GL_FALSE)
     }
-    public let count: GLsizei
-    public var typeSize: GLsizei {
-        return GLsizei(sizeof(T) / T.count())
-    }
+
     public var glType: GLenum {
         return GLenum(0)
     }
@@ -109,9 +108,7 @@ public class Buffer<T:Countable> {
         count = GLsizei(elements.count)
         glGenBuffers(1, &name)
         bind()
-        elements.withUnsafeBufferPointer { (p: UnsafeBufferPointer<T>) in
-            glBufferData(target, p.count * sizeof(T.Type), p.baseAddress, GLenum(GL_STATIC_DRAW))
-        }
+        glBufferData(target, elements.count * sizeof(T.Type), elements, GLenum(GL_STATIC_DRAW))
     }
     
     deinit {
@@ -126,7 +123,8 @@ public class Buffer<T:Countable> {
     
     func submit(location: GLuint) {
         bind()
-        glVertexAttribPointer(GLuint(location), typeSize, glType, normalize, 0, nil)
+        glVertexAttribPointer(GLuint(location), GLint(T.count()), glType, normalize, 0, nil)
+        glDrawArrays(GLenum(GL_TRIANGLES), 0, count)
     }
     
     func delete() {
