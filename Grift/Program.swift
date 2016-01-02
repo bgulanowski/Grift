@@ -26,11 +26,14 @@ public class Program {
     var name: GLuint = 0
     var uniforms = [String:Variable]()
     var attribs = [String:Variable]()
+    let shaders: [Shader]
     
-    public init(vShader: Shader, fShader: Shader) {
+    public init(shaders: [Shader]) {
         name = glCreateProgram()
-        glAttachShader(name, vShader.name)
-        glAttachShader(name, fShader.name)
+        for shader in shaders {
+            glAttachShader(name, shader.name)
+        }
+        self.shaders = shaders
         glLinkProgram(name)
         if !getLinkStatus() {
             print("Failed to link program; error: '\(getLinkInfo())'")
@@ -60,12 +63,12 @@ public class Program {
             // TODO: support legacy
             print("[Grift] Only OpenGLES3 is supported. Please create a GLES3 rendering context.")
         }
-        self.init(vShader: vertFunc, fShader: fragFunc)
+        self.init(shaders: [vertFunc, fragFunc])
     }
     
     public class func newProgramWithName(name: String) -> Program? {
         if let vShader = Shader.newVertexShaderWithName(name), fShader = Shader.newFragmentShaderWithName(name) {
-            return Program(vShader: vShader, fShader: fShader)
+            return Program(shaders: [vShader, fShader])
         }
         else {
             return nil
@@ -81,7 +84,7 @@ public class Program {
         glUseProgram(name)
     }
     
-    public func enableBuffer<T>(buffer: Buffer<T>, name: String) {
+    public func submitBuffer<T>(buffer: Buffer<T>, name: String) {
         if let location = attribs[name]?.location {
             glEnableVertexAttribArray(location)
             buffer.submit(GLuint(location))
