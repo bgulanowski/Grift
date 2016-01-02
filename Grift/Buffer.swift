@@ -9,7 +9,11 @@
 import Foundation
 import OpenGLES
 
-public struct Float2 {
+public protocol Countable {
+    static func count() -> Int
+}
+
+public struct Float2 : Countable {
     
     let x: GLfloat
     let y: GLfloat
@@ -23,9 +27,13 @@ public struct Float2 {
         x = tuple.0
         y = tuple.1
     }
+    
+    public static func count() -> Int {
+        return 2
+    }
 }
 
-public struct Float3 {
+public struct Float3 : Countable {
     
     let x: GLfloat
     let y: GLfloat
@@ -42,9 +50,13 @@ public struct Float3 {
         y = tuple.1
         z = tuple.2
     }
+    
+    public static func count() -> Int {
+        return 3
+    }
 }
 
-public struct Float4 {
+public struct Float4 : Countable {
     
     let x: GLfloat
     let y: GLfloat
@@ -64,6 +76,10 @@ public struct Float4 {
         z = tuple.2
         w = tuple.3
     }
+    
+    public static func count() -> Int {
+        return 4
+    }
 }
 
 public typealias Point2 = Float2
@@ -72,8 +88,8 @@ public typealias Color = Float4
 public typealias Normal = Float3
 public typealias TexCoord = Float2
 
-public class Buffer<T> {
-    
+public class Buffer<T:Countable> {
+
     var name: GLuint = 0
     var target: GLenum {
         return GLenum(0)
@@ -83,7 +99,7 @@ public class Buffer<T> {
     }
     public let count: GLsizei
     public var typeSize: GLsizei {
-        return GLsizei(sizeof(T))
+        return GLsizei(sizeof(T) / T.count())
     }
     public var glType: GLenum {
         return GLenum(0)
@@ -92,8 +108,10 @@ public class Buffer<T> {
     public init(elements: [T]) {
         count = GLsizei(elements.count)
         glGenBuffers(1, &name)
-        glBindBuffer(target, name)
-        glBufferData(target, elements.count * sizeof(T.Type), elements, GLenum(GL_STATIC_DRAW))
+        bind()
+        elements.withUnsafeBufferPointer { (p: UnsafeBufferPointer<T>) in
+            glBufferData(target, p.count * sizeof(T.Type), p.baseAddress, GLenum(GL_STATIC_DRAW))
+        }
     }
     
     deinit {
@@ -108,13 +126,18 @@ public class Buffer<T> {
     
     func submit(location: GLuint) {
         bind()
-        glEnableVertexAttribArray(location)
-        glVertexAttribPointer(GLuint(location), typeSize, glType, normalize, 0, UnsafePointer<Void>())
+        glVertexAttribPointer(GLuint(location), typeSize, glType, normalize, 0, nil)
     }
     
     func delete() {
         glDeleteBuffers(1, &name)
         name = 0
+    }
+}
+
+extension GLuint : Countable {
+    public static func count() -> Int {
+        return 1
     }
 }
 
@@ -130,7 +153,7 @@ public class IndexBuffer : Buffer<GLuint> {
     }
 }
 
-public class VertexBuffer<T> : Buffer<T> {
+public class VertexBuffer<T:Countable> : Buffer<T> {
     override var target: GLenum {
         return GLenum(GL_ARRAY_BUFFER)
     }

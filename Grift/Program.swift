@@ -83,6 +83,7 @@ public class Program {
     
     public func enableBuffer<T>(buffer: Buffer<T>, name: String) {
         if let location = attribs[name]?.location {
+            glEnableVertexAttribArray(location)
             buffer.submit(GLuint(location))
         }
     }
