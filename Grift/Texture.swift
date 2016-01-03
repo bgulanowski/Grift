@@ -8,6 +8,7 @@
 
 import Foundation
 import OpenGLES
+import GLKit
 
 typealias BOOL = Bool
 
@@ -50,11 +51,55 @@ public class Texture : Bindable, FramebufferAttachable {
     let format: GLenum
     var name: GLuint = 0
     
-    public init(size: CGSize, type: GLenum, format: GLenum, data: NSData) {
+    // TODO: inefficient; better to track dirty state, and update all dirty params at once in bind()
+    public var minFilter: GLint {
+        didSet {
+            bind()
+            setParameter(GL_TEXTURE_MIN_FILTER, value: minFilter)
+        }
+    }
+    
+    public var magFilter: GLint {
+        didSet {
+            bind()
+            setParameter(GL_TEXTURE_MAG_FILTER, value: magFilter)
+        }
+    }
+    
+    public var wrapS: GLint {
+        didSet {
+            bind()
+            setParameter(GL_TEXTURE_WRAP_S, value: wrapS)
+        }
+    }
+    
+    public var wrapT: GLint {
+        didSet {
+            bind()
+            setParameter(GL_TEXTURE_WRAP_T, value: wrapT)
+        }
+    }
+
+    public init(name: GLuint, size: CGSize, type: GLenum, format: GLenum) {
+        self.name = name
         self.size = size
         self.type = type
         self.format = format
-        createTexture(data)
+        minFilter = GL_NEAREST
+        magFilter = GL_NEAREST
+        wrapS = GL_CLAMP_TO_EDGE
+        wrapT = GL_CLAMP_TO_EDGE
+    }
+
+    convenience public init(size: CGSize, type: GLenum, format: GLenum) {
+        var name: GLuint = 0
+        glGenTextures(1, &name)
+        self.init(name: name, size: size, type: type, format: format)
+    }
+    
+    convenience public init(size: CGSize, type: GLenum, format: GLenum, data: NSData) {
+        self.init(size: size, type: type, format: format)
+        loadTexture(data)
     }
     
     deinit {
@@ -83,7 +128,13 @@ public class Texture : Bindable, FramebufferAttachable {
     }
     
     func bind() {
+        // TODO: target should support texture rectangle on OS X
         glBindTexture(GLenum(GL_TEXTURE_2D), GLuint(name))
+    }
+    
+    func setParameter(parameter: GLint, value: GLint) {
+        // TODO: target should support texture rectangle on OS X
+        glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(parameter), value);
     }
     
     public func attachToFramebuffer(framebuffer: Framebuffer, attachmentPoint: GLenum) {
@@ -92,10 +143,35 @@ public class Texture : Bindable, FramebufferAttachable {
         glFramebufferTexture2D(GLenum(GL_DRAW_FRAMEBUFFER), attachmentPoint, GLenum(GL_TEXTURE_2D), name, 0)
     }
     
-    func createTexture(data: NSData) {
-        glGenTextures(1, &name)
+    func loadTexture(data: NSData) {
         glBindTexture(GLenum(GL_TEXTURE_2D), name)
         glTexImage2D(GLenum(GL_TEXTURE_2D), 0, GL_RGBA, GLsizei(size.width), GLsizei(size.height), 0, format, type, data.bytes)
+    }
+    
+    func generateMipmap() {
+        glBindTexture(GLenum(GL_TEXTURE_2D), name)
         glGenerateMipmap(GLenum(GL_TEXTURE_2D))
+    }
+}
+
+public extension Texture {
+    public class func textureWithURL(url: NSURL) -> Texture? {
+        var texture: Texture?
+        do {
+            let info = try GLKTextureLoader.textureWithContentsOfURL(url, options: nil)
+            texture = Texture(name: info.name, size: CGSize(width: Int(info.width), height: Int(info.height)), type: GLenum(0), format: GLenum(0))
+        }
+        catch {
+            // no idea what to do, don't really care
+        }
+        return texture
+    }
+
+    public class func textureWithName(name: String, filetype: String) -> Texture? {
+        var texture: Texture?
+        if let url = NSBundle.mainBundle().URLForResource(name, withExtension: filetype) {
+            texture = textureWithURL(url)
+        }
+        return texture
     }
 }

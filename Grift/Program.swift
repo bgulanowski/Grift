@@ -91,6 +91,15 @@ public class Program {
         }
     }
     
+    public func submitTexture(texture: Texture, uniformName: String) {
+        let location = getLocationOfUniform(uniformName)
+        if location != Program.UnknownLocation {
+            glActiveTexture(GLenum(0))
+            texture.bind()
+            glUniform1i(location, GLint(0))
+        }
+    }
+    
     // MARK: OpenGL/ES state queries
     
     public func activeAttributeNames() -> [String] {
