@@ -9,9 +9,24 @@
 import Foundation
 import OpenGLES
 
-public class Framebuffer {
+public protocol FramebufferAttachable {
+    func attachToFramebuffer(framebuffer: Framebuffer, attachmentPoint: GLenum) -> Void
+}
+
+public class Framebuffer : Bindable {
     
     var name: GLuint = 0
+    public var colorAttachment0: FramebufferAttachable? {
+        didSet {
+            bind()
+            if colorAttachment0 == nil {
+                glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER), GLenum(GL_COLOR_ATTACHMENT0), GLenum(GL_RENDERBUFFER), GLuint(0))
+            }
+            else {
+                colorAttachment0!.attachToFramebuffer(self, attachmentPoint: GLenum(GL_COLOR_ATTACHMENT0))
+            }
+        }
+    }
     
     public init() {
         glGenFramebuffers(1, &name)

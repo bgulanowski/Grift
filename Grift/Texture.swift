@@ -43,7 +43,7 @@ public struct Colorf {
     }
 }
 
-public class Texture {
+public class Texture : Bindable, FramebufferAttachable {
     
     let size: CGSize
     let type: GLenum
@@ -80,6 +80,16 @@ public class Texture {
             data = NSData(bytes: p.baseAddress, length: p.count * sizeof(Colorf))
         }
         self.init(size: size, data: data)
+    }
+    
+    func bind() {
+        glBindTexture(GLenum(GL_TEXTURE_2D), GLuint(name))
+    }
+    
+    public func attachToFramebuffer(framebuffer: Framebuffer, attachmentPoint: GLenum) {
+        // TODO: `target` (first arg) might need to support GL_READ_FRAMEBUFFER
+        // TODO: `texTarget` (third arg) should be whatever was used to create bind/load the texture in createTexture()
+        glFramebufferTexture2D(GLenum(GL_DRAW_FRAMEBUFFER), attachmentPoint, GLenum(GL_TEXTURE_2D), name, 0)
     }
     
     func createTexture(data: NSData) {

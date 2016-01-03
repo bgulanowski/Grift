@@ -88,7 +88,7 @@ public typealias Color = Float4
 public typealias Normal = Float3
 public typealias TexCoord = Float2
 
-public class Buffer<T:Countable> {
+public class Buffer<T:Countable> : Bindable {
 
     var name: GLuint = 0
     public let count: GLsizei
