@@ -13,20 +13,30 @@ let basic33VertexFunc =
 "#version 300 es\n" +
 "layout(location = 0) in vec3 position;\n" +
 "layout(location = 1) in vec4 colour;\n" +
+"layout(location = 2) in vec2 texCoord;\n" +
 "uniform mat4 MVP;\n" +
 "out vec4 vColour;\n" +
+"out vec2 vtexCoord;\n" +
 "void main() {\n" +
-"    vColour = colour;\n" +
+"  vColour = colour;\n" +
+"  vtexCoord = texCoord;\n" +
 "    gl_Position = MVP*vec4(position,1);\n" +
 "}\n"
 
 let basic33FragFunc =
 "#version 300 es\n" +
 "precision highp float;" +
+"uniform bool useTex;\n" +
+"uniform sampler2D sampler;\n" +
 "in vec4 vColour;\n" +
+"in vec2 vtexCoord;\n" +
 "layout(location = 0) out vec4 vFragColor;\n" +
 "void main() {\n" +
+"  if (useTex) {\n" +
+"    vFragColor = texture(sampler, vtexCoord);\n" +
+"  } else {" +
 "    vFragColor = vColour;\n" +
+"  }\n" +
 "}\n"
 
 public class Shader {
