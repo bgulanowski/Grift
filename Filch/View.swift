@@ -51,7 +51,7 @@ class View: UIView {
         // renderbuffer storage must be allocated before it is attached to the framebuffer
         context.renderbufferStorage(colorBuffer, fromDrawable: glLayer)
         framebuffer = Framebuffer()
-        framebuffer.colorAttachment0 = colorBuffer
+        framebuffer.setColorAttachment(colorBuffer, atIndex: 0)
     }
     
     func prepareShaders() {

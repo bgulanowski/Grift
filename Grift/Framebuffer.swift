@@ -16,17 +16,9 @@ public protocol FramebufferAttachable {
 public class Framebuffer : Bindable {
     
     var name: GLuint = 0
-    public var colorAttachment0: FramebufferAttachable? {
-        didSet {
-            bind()
-            if colorAttachment0 == nil {
-                glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER), GLenum(GL_COLOR_ATTACHMENT0), GLenum(GL_RENDERBUFFER), GLuint(0))
-            }
-            else {
-                colorAttachment0!.attachToFramebuffer(self, attachmentPoint: GLenum(GL_COLOR_ATTACHMENT0))
-            }
-        }
-    }
+    var colorAttachments = [FramebufferAttachable?](count: 16, repeatedValue: nil)
+    
+    // TODO: depth and stencil attachments
     
     public init() {
         glGenFramebuffers(1, &name)
@@ -41,6 +33,22 @@ public class Framebuffer : Bindable {
     func delete() {
         glDeleteFramebuffers(1, &name)
         name = 0
+    }
+    
+    public func setColorAttachment(attachment: FramebufferAttachable?, atIndex index: Int) {
+        let attachmentPoint = GLenum(GL_COLOR_ATTACHMENT0) + GLenum(index)
+        bind()
+        if attachment == nil {
+            glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER), attachmentPoint, GLenum(GL_RENDERBUFFER), GLuint(0))
+        }
+        else {
+            attachment?.attachToFramebuffer(self, attachmentPoint: attachmentPoint)
+        }
+        colorAttachments[index] = attachment
+    }
+    
+    public func colorAttachmentAtIndex(index: Int) -> FramebufferAttachable? {
+        return colorAttachments[index]
     }
     
     public func bind() {
