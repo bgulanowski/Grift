@@ -97,7 +97,8 @@ public class Texture : Bindable, FramebufferAttachable {
         self.init(name: name, size: size, type: type, format: format)
     }
     
-    convenience public init(size: CGSize, type: GLenum, format: GLenum, data: NSData) {
+    // TODO: replace NSData with a Swift array
+    convenience public init(size: CGSize, type: GLenum, format: GLenum, data: NSData?) {
         self.init(size: size, type: type, format: format)
         loadTexture(data)
     }
@@ -113,7 +114,7 @@ public class Texture : Bindable, FramebufferAttachable {
         name = 0
     }
 
-    public convenience init(size: CGSize, data: NSData) {
+    public convenience init(size: CGSize, data: NSData?) {
         self.init(size: size, type: GLenum(GL_UNSIGNED_BYTE), format: GLenum(GL_RGBA), data: data)
     }
     
@@ -143,9 +144,10 @@ public class Texture : Bindable, FramebufferAttachable {
         glFramebufferTexture2D(GLenum(GL_DRAW_FRAMEBUFFER), attachmentPoint, GLenum(GL_TEXTURE_2D), name, 0)
     }
     
-    func loadTexture(data: NSData) {
+    func loadTexture(data: NSData?) {
         glBindTexture(GLenum(GL_TEXTURE_2D), name)
-        glTexImage2D(GLenum(GL_TEXTURE_2D), 0, GL_RGBA, GLsizei(size.width), GLsizei(size.height), 0, format, type, data.bytes)
+        let bytes: UnsafePointer<Void> = data != nil ? data!.bytes : UnsafePointer<Void>()
+        glTexImage2D(GLenum(GL_TEXTURE_2D), 0, GL_RGBA, GLsizei(size.width), GLsizei(size.height), 0, format, type, bytes)
     }
     
     func generateMipmap() {
