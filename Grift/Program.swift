@@ -56,8 +56,8 @@ public class Program {
         var vertFunc: Shader!
         var fragFunc: Shader!
         if EAGLContext.currentContext().API == .OpenGLES3 {
-            vertFunc = Shader.basic33VertexShader()
-            fragFunc = Shader.basic33FragmentShader()
+            vertFunc = Shader.basic300VertexShader()
+            fragFunc = Shader.basic300FragmentShader()
         }
         else {
             // TODO: support legacy

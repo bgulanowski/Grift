@@ -116,11 +116,11 @@ public class Shader {
         return Shader(source: source, type: GLenum(GL_FRAGMENT_SHADER))
     }
     
-    public class func basic33VertexShader() -> Shader {
+    public class func basic300VertexShader() -> Shader {
         return Shader(source: basic33VertexFunc, type: GLenum(GL_VERTEX_SHADER))
     }
     
-    public class func basic33FragmentShader() -> Shader {
+    public class func basic300FragmentShader() -> Shader {
         return Shader(source: basic33FragFunc, type: GLenum(GL_FRAGMENT_SHADER))
     }
 }
