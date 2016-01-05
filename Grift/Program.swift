@@ -16,6 +16,61 @@ public struct Variable {
     let location: GLuint
 }
 
+// MARK: - uniform submission generic support
+
+public protocol ProgramSubmissible {
+    static func submit1Func() -> (GLint, Self) -> Void
+    static func submit1VFunc() -> (GLint, GLsizei, UnsafePointer<Self>) -> Void
+}
+
+extension ProgramSubmissible {
+    func submit(location: GLint) {
+        Self.submit1Func()(location, self)
+    }
+    static func submitArray(array: [Self], location: GLint) {
+        Self.submit1VFunc()(location, GLsizei(array.count), array)
+    }
+}
+
+extension Array where Element : ProgramSubmissible {
+    func submit(location: GLint) {
+        Element.submitArray(self, location: location)
+    }
+}
+
+// TODO: support for glUniform{2|3|4}{f|i|ui}(v)
+
+extension GLint : ProgramSubmissible {
+    public static func submit1Func() -> (GLint, GLint) -> Void {
+        return glUniform1i
+    }
+   public  static func submit1VFunc() -> (GLint, GLsizei, UnsafePointer<GLint>) -> Void {
+        return glUniform1iv
+    }
+}
+
+extension GLuint : ProgramSubmissible {
+    public static func submit1Func() -> (GLint, GLuint) -> Void {
+        return glUniform1ui
+    }
+    public static func submit1VFunc() -> (GLint, GLsizei, UnsafePointer<GLuint>) -> Void {
+        return glUniform1uiv
+    }
+}
+
+extension GLfloat : ProgramSubmissible {
+    public static func submit1Func() -> (GLint, GLfloat) -> Void {
+        return glUniform1f
+    }
+    public static func submit1VFunc() -> (GLint, GLsizei, UnsafePointer<GLfloat>) -> Void {
+        return glUniform1fv
+    }
+}
+
+
+
+// MARK: -
+
 typealias GetActiveVariableFunc = (GLuint, GLuint, GLsizei, UnsafeMutablePointer<GLsizei>, UnsafeMutablePointer<GLint>, UnsafeMutablePointer<GLenum>, UnsafeMutablePointer<GLchar>) -> Void
 typealias GetVariableLocationFunc = (GLuint, UnsafePointer<GLchar>) -> GLint
 
@@ -95,6 +150,15 @@ public class Program {
         let location = getLocationOfUniform(uniformName)
         if location != Program.UnknownLocation {
             texture.submit(location)
+        }
+    }
+    
+    // Convert GLchar, GLbyte, GLshort, GLsizei to GLint
+    // Convert GLboolean, GLubyte, GLushort to GLuint
+    public func submitUniform<U:ProgramSubmissible>(value: U, uniformName: String) {
+        let location = getLocationOfUniform(uniformName)
+        if location != Program.UnknownLocation {
+            value.submit(location)
         }
     }
     
