@@ -10,18 +10,18 @@ import Foundation
 import OpenGLES
 
 let basic33VertexFunc =
-"#version 300 es\n\n" +
+"#version 300 es\n" +
 "layout(location = 0) in vec3 position;\n" +
 "layout(location = 1) in vec4 colour;\n" +
-"out vec4 vColour;\n" +
 "uniform mat4 MVP;\n" +
+"out vec4 vColour;\n" +
 "void main() {\n" +
 "    vColour = colour;\n" +
 "    gl_Position = MVP*vec4(position,1);\n" +
 "}\n"
 
 let basic33FragFunc =
-"#version 300 es\n\n" +
+"#version 300 es\n" +
 "precision highp float;" +
 "in vec4 vColour;\n" +
 "layout(location = 0) out vec4 vFragColor;\n" +
