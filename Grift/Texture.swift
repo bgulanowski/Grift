@@ -171,6 +171,7 @@ public extension Texture {
         }
         catch {
             // no idea what to do, don't really care
+            texture = Texture(size: CGSize(width: 1.0, height: 1.0), color: UIColor.greenColor())
         }
         return texture
     }

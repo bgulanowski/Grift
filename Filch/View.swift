@@ -16,6 +16,7 @@ class View: UIView {
     var program: Program!
     var pointBuffer: Point3Buffer!
     var texCoordBuffer: Point2Buffer!
+    var texture: Texture!
     
     var glLayer: CAEAGLLayer {
         return layer as! CAEAGLLayer
@@ -66,6 +67,8 @@ class View: UIView {
     
     func prepareContent() {
         pointBuffer = makePoints()
+        texCoordBuffer = makeTexCoords()
+        texture = Texture.textureWithName("David", filetype: "png")
     }
     
     func makePoints() -> Point3Buffer {
@@ -73,9 +76,20 @@ class View: UIView {
             Point3(tuple: (-0.5, -0.5, 0.0)),
             Point3(tuple: ( 0.5, -0.5, 0.0)),
             Point3(tuple: ( 0.5,  0.5, 0.0)),
-            Point3(tuple: (-0.5,  0.5, 0.0))
+            Point3(tuple: (-0.5,  0.5, 0.0)),
         ]
         return Point3Buffer(elements: elements)
+    }
+    
+    func makeTexCoords() -> TexCoordBuffer {
+        let elements = [
+            // Weird 
+            TexCoord(tuple: (0.0, 0.0)),
+            TexCoord(tuple: (1.0, 0.0)),
+            TexCoord(tuple: (1.0, 1.0)),
+            TexCoord(tuple: (0.0, 1.0)),
+        ]
+        return TexCoordBuffer(elements: elements)
     }
 
     func render() {
@@ -84,16 +98,21 @@ class View: UIView {
         glClear(GLbitfield(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT))
         
         program.use()
-        program.submitBuffer(pointBuffer, name: "position")
         
+        // TODO: support for matrices in Program.submitUniformMatrix
         let matrix = Array<GLfloat>( arrayLiteral:
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
         )
-    
+        
         glUniformMatrix4fv(program.getLocationOfUniform("MVP"), 1, GLboolean(GL_FALSE), matrix)
+        
+        program.submitUniform(GLint(GL_TRUE), uniformName: "useTex")
+        program.submitTexture(texture, uniformName: "texture")
+        program.submitBuffer(pointBuffer, name: "position")
+        program.submitBuffer(texCoordBuffer, name: "texCoord")
         
         glDrawArrays(GLenum(GL_TRIANGLE_FAN), 0, pointBuffer.count)
         
