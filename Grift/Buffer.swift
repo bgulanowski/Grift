@@ -124,7 +124,6 @@ public class Buffer<T:Countable> : Bindable {
     func submit(location: GLuint) {
         bind()
         glVertexAttribPointer(GLuint(location), GLint(T.count()), glType, normalize, 0, nil)
-        glDrawArrays(GLenum(GL_TRIANGLES), 0, count)
     }
     
     func delete() {
