@@ -22,6 +22,7 @@
 		847661661C3609D800696B04 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 847661641C3609D800696B04 /* Main.storyboard */; };
 		847661681C3609D800696B04 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 847661671C3609D800696B04 /* Assets.xcassets */; };
 		8476616B1C3609D800696B04 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 847661691C3609D800696B04 /* LaunchScreen.storyboard */; };
+		84926D531C3D4E5200A57E47 /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84926D521C3D4E5200A57E47 /* View.swift */; };
 		84A0D3041C360E69000B0B9E /* Grift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 847661381C36082D00696B04 /* Grift.framework */; };
 /* End PBXBuildFile section */
 
@@ -70,6 +71,7 @@
 		847661671C3609D800696B04 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8476616A1C3609D800696B04 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8476616C1C3609D800696B04 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		84926D521C3D4E5200A57E47 /* View.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,6 +149,7 @@
 				847661671C3609D800696B04 /* Assets.xcassets */,
 				847661691C3609D800696B04 /* LaunchScreen.storyboard */,
 				8476616C1C3609D800696B04 /* Info.plist */,
+				84926D521C3D4E5200A57E47 /* View.swift */,
 			);
 			path = Filch;
 			sourceTree = "<group>";
@@ -332,6 +335,7 @@
 			files = (
 				847661631C3609D800696B04 /* ViewController.swift in Sources */,
 				847661611C3609D800696B04 /* AppDelegate.swift in Sources */,
+				84926D531C3D4E5200A57E47 /* View.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
