@@ -204,11 +204,11 @@ public class Program {
         return results
     }
     
-    func getLocationOfAttribute(attribute: String) -> GLint {
+    public func getLocationOfAttribute(attribute: String) -> GLint {
         return getVariableLocation(attribute, getLocation: glGetAttribLocation)
     }
     
-    func getLocationOfUniform(uniform: String) -> GLint {
+    public func getLocationOfUniform(uniform: String) -> GLint {
         return getVariableLocation(uniform, getLocation: glGetUniformLocation)
     }
     
