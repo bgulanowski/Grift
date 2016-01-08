@@ -13,7 +13,7 @@ public struct Variable {
     let name: String
     let type: GLenum
     let size: GLint
-    let location: GLuint
+    let location: GLint
 }
 
 // MARK: - uniform submission generic support
@@ -141,14 +141,13 @@ public class Program {
     
     public func submitBuffer<T>(buffer: Buffer<T>, name: String) {
         if let location = attribs[name]?.location {
-            glEnableVertexAttribArray(location)
+            glEnableVertexAttribArray(GLuint(location))
             buffer.submit(GLuint(location))
         }
     }
     
     public func submitTexture(texture: Texture, uniformName: String) {
-        let location = getLocationOfUniform(uniformName)
-        if location != Program.UnknownLocation {
+        if let location = uniforms[uniformName]?.location {
             texture.submit(location)
         }
     }
@@ -156,8 +155,7 @@ public class Program {
     // Convert GLchar, GLbyte, GLshort, GLsizei to GLint
     // Convert GLboolean, GLubyte, GLushort to GLuint
     public func submitUniform<U:ProgramSubmissible>(value: U, uniformName: String) {
-        let location = getLocationOfUniform(uniformName)
-        if location != Program.UnknownLocation {
+        if let location = uniforms[uniformName]?.location {
             value.submit(location)
         }
     }
@@ -209,7 +207,7 @@ public class Program {
             getVariable(self.name, index, maxLength, nil, &size, &type, p.baseAddress)
         })
         let location = getVariableLocation(variableName, getLocation: getLocation)
-        return location == Program.UnknownLocation ? nil : Variable(name: variableName, type: type, size: size, location: GLuint(location))
+        return location == Program.UnknownLocation ? nil : Variable(name: variableName, type: type, size: size, location: location)
     }
     
     func getLinkInfo() -> String {

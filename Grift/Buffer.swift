@@ -123,7 +123,7 @@ public class Buffer<T:Countable> : Bindable {
     
     func submit(location: GLuint) {
         bind()
-        glVertexAttribPointer(GLuint(location), GLint(T.count()), glType, normalize, 0, nil)
+        glVertexAttribPointer(location, GLint(T.count()), glType, normalize, 0, nil)
     }
     
     func delete() {
