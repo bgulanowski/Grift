@@ -20,7 +20,7 @@ let basic33VertexFunc =
 "void main() {\n" +
 "  vColour = colour;\n" +
 "  vtexCoord = texCoord;\n" +
-"    gl_Position = MVP*vec4(position,1);\n" +
+"  gl_Position = MVP*vec4(position,1);\n" +
 "}\n"
 
 let basic33FragFunc =

@@ -15,6 +15,7 @@ class View: UIView {
     var framebuffer: Framebuffer!
     var program: Program!
     var pointBuffer: Point3Buffer!
+    var colorBuffer: ColorBuffer!
     var texCoordBuffer: Point2Buffer!
     var texture: Texture!
     
@@ -63,11 +64,13 @@ class View: UIView {
         let size = bounds.size
         glViewport(0, 0, GLsizei(size.width), GLsizei(size.height))
         glClearColor(0.5, 0, 0, 1)
+        
     }
     
     func prepareContent() {
         pointBuffer = makePoints()
         texCoordBuffer = makeTexCoords()
+        colorBuffer = makeColors()
         texture = Texture.textureWithName("David", filetype: "png")
     }
     
@@ -83,13 +86,23 @@ class View: UIView {
     
     func makeTexCoords() -> TexCoordBuffer {
         let elements = [
-            // Weird 
-            TexCoord(tuple: (0.0, 0.0)),
-            TexCoord(tuple: (1.0, 0.0)),
-            TexCoord(tuple: (1.0, 1.0)),
+            // Y coordinates are flipped because iOS?
             TexCoord(tuple: (0.0, 1.0)),
+            TexCoord(tuple: (1.0, 1.0)),
+            TexCoord(tuple: (1.0, 0.0)),
+            TexCoord(tuple: (0.0, 0.0)),
         ]
         return TexCoordBuffer(elements: elements)
+    }
+    
+    func makeColors() -> ColorBuffer {
+        let elements = [
+            Color(x: 1, y: 0, z: 0, w: 1),
+            Color(x: 0, y: 1, z: 0, w: 1),
+            Color(x: 0, y: 0, z: 1, w: 1),
+            Color(x: 1, y: 1, z: 0, w: 1)
+        ]
+        return ColorBuffer(elements: elements)
     }
 
     func render() {
@@ -108,10 +121,12 @@ class View: UIView {
         )
         
         glUniformMatrix4fv(program.getLocationOfUniform("MVP"), 1, GLboolean(GL_FALSE), matrix)
+        glLineWidth(GLfloat(5.0))
         
         program.submitUniform(GLint(GL_TRUE), uniformName: "useTex")
         program.submitTexture(texture, uniformName: "texture")
         program.submitBuffer(pointBuffer, name: "position")
+        program.submitBuffer(colorBuffer, name: "colour")
         program.submitBuffer(texCoordBuffer, name: "texCoord")
         
         glDrawArrays(GLenum(GL_TRIANGLE_FAN), 0, pointBuffer.count)

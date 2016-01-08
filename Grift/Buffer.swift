@@ -108,7 +108,7 @@ public class Buffer<T:Countable> : Bindable {
         count = GLsizei(elements.count)
         glGenBuffers(1, &name)
         bind()
-        glBufferData(target, elements.count * sizeof(T.Type), elements, GLenum(GL_STATIC_DRAW))
+        glBufferData(target, elements.count * sizeof(T), elements, GLenum(GL_STATIC_DRAW))
     }
     
     deinit {
