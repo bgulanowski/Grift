@@ -134,9 +134,10 @@ public class Texture : Bindable, FramebufferAttachable {
     }
     
     func submit(location: GLint) {
-        glActiveTexture(GLenum(0))
+        // TODO: support other texture units
+        glActiveTexture(GLenum(GL_TEXTURE0))
         bind()
-        glUniform1i(location, GLint(name))
+        glUniform1i(location, GLint(0))
     }
     
     func setParameter(parameter: GLint, value: GLint) {
@@ -147,7 +148,7 @@ public class Texture : Bindable, FramebufferAttachable {
     public func attachToFramebuffer(framebuffer: Framebuffer, attachmentPoint: GLenum) {
         // TODO: `target` (first arg) might need to support GL_READ_FRAMEBUFFER
         // TODO: `texTarget` (third arg) should be whatever was used to create bind/load the texture in createTexture()
-        glFramebufferTexture2D(GLenum(GL_DRAW_FRAMEBUFFER), attachmentPoint, GLenum(GL_TEXTURE_2D), name, 0)
+        glFramebufferTexture2D(GLenum(GL_FRAMEBUFFER), attachmentPoint, GLenum(GL_TEXTURE_2D), name, 0)
     }
     
     func loadTexture(data: NSData?) {

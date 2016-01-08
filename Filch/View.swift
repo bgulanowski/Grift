@@ -121,10 +121,9 @@ class View: UIView {
         )
         
         glUniformMatrix4fv(program.getLocationOfUniform("MVP"), 1, GLboolean(GL_FALSE), matrix)
-        glLineWidth(GLfloat(5.0))
         
         program.submitUniform(GLint(GL_TRUE), uniformName: "useTex")
-        program.submitTexture(texture, uniformName: "texture")
+        program.submitTexture(texture, uniformName: "sampler")
         program.submitBuffer(pointBuffer, name: "position")
         program.submitBuffer(colorBuffer, name: "colour")
         program.submitBuffer(texCoordBuffer, name: "texCoord")
