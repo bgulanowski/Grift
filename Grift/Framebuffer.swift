@@ -37,7 +37,7 @@ public class Framebuffer : Bindable {
     
     public func setColorAttachment(attachment: FramebufferAttachable?, atIndex index: Int) {
         let attachmentPoint = GLenum(GL_COLOR_ATTACHMENT0) + GLenum(index)
-        bind()
+        bind(false)
         if attachment == nil {
             glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER), attachmentPoint, GLenum(GL_RENDERBUFFER), GLuint(0))
         }
@@ -52,6 +52,10 @@ public class Framebuffer : Bindable {
     }
     
     public func bind() {
-        glBindFramebuffer(GLenum(GL_FRAMEBUFFER), name)
+        bind(false)
+    }
+    
+    public func bind(forReading: Bool) {
+        glBindFramebuffer(GLenum(forReading ? GL_READ_FRAMEBUFFER : GL_DRAW_FRAMEBUFFER), name)
     }
 }
