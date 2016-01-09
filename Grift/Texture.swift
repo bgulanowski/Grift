@@ -140,7 +140,7 @@ public class Texture : Bindable, FramebufferAttachable {
         glUniform1i(location, GLint(0))
     }
     
-    func setParameter(parameter: GLint, value: GLint) {
+    public func setParameter(parameter: GLint, value: GLint) {
         // TODO: target should support texture rectangle on OS X
         glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(parameter), value);
     }
