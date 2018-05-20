@@ -9,7 +9,7 @@
 import Foundation
 import OpenGLES
 
-public class Renderbuffer : Bindable, FramebufferAttachable {
+open class Renderbuffer : Bindable, FramebufferAttachable {
     
     var name: GLuint = 0
     
@@ -33,14 +33,14 @@ public class Renderbuffer : Bindable, FramebufferAttachable {
     
     
     
-    public func attachToFramebuffer(framebuffer: Framebuffer, attachmentPoint: GLenum) {
+    open func attachToFramebuffer(_ framebuffer: Framebuffer, attachmentPoint: GLenum) {
         glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER), attachmentPoint, GLenum(GL_RENDERBUFFER), name)
     }
 }
 
 public extension EAGLContext {
-    func renderbufferStorage(renderbuffer: Renderbuffer, fromDrawable: EAGLDrawable!) {
+    func renderbufferStorage(_ renderbuffer: Renderbuffer, fromDrawable: EAGLDrawable!) {
         renderbuffer.bind()
-        self.renderbufferStorage(Int(GL_RENDERBUFFER), fromDrawable: fromDrawable)
+        self.renderbufferStorage(Int(GL_RENDERBUFFER), from: fromDrawable)
     }
 }

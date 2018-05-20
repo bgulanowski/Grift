@@ -39,7 +39,7 @@ let basic33FragFunc =
 "  }\n" +
 "}\n"
 
-public class Shader {
+open class Shader {
     
     var name: GLuint
     
@@ -83,7 +83,7 @@ public class Shader {
         return getShaderProperty(GLenum(GL_INFO_LOG_LENGTH))
     }
     
-    func getShaderProperty(property: GLenum) -> GLint {
+    func getShaderProperty(_ property: GLenum) -> GLint {
         var value: GLint = 0
         glGetShaderiv(name, property, &value)
         return value
@@ -91,16 +91,16 @@ public class Shader {
     
     // MARK: convenience factories
     
-    public class func newVertexShaderWithName(name: String) -> Shader? {
+    open class func newVertexShaderWithName(_ name: String) -> Shader? {
         return newShaderWithName(name, type: GLenum(GL_VERTEX_SHADER))
     }
     
-    public class func newFragmentShaderWithName(name: String) -> Shader? {
+    open class func newFragmentShaderWithName(_ name: String) -> Shader? {
         return newShaderWithName(name, type: GLenum(GL_FRAGMENT_SHADER))
     }
     
-    public class func newShaderWithName(name: String, type: GLenum) -> Shader? {
-        if let url = NSBundle.mainBundle().URLForResource(name, withExtension: type == GLenum(GL_VERTEX_SHADER) ? "vp" : "fp") {
+    open class func newShaderWithName(_ name: String, type: GLenum) -> Shader? {
+        if let url = Bundle.main.url(forResource: name, withExtension: type == GLenum(GL_VERTEX_SHADER) ? "vp" : "fp") {
             return newShaderWithURL(url, type: type)
         }
         else {
@@ -108,9 +108,9 @@ public class Shader {
         }
     }
     
-    public class func newShaderWithURL(url: NSURL, type: GLenum) -> Shader? {
+    open class func newShaderWithURL(_ url: URL, type: GLenum) -> Shader? {
         do {
-            let source = try String(contentsOfURL: url)
+            let source = try String(contentsOf: url)
             return Shader(source: source, type: type)
         }
         catch {
@@ -118,19 +118,19 @@ public class Shader {
         }
     }
     
-    public class func newVertexShader(source: String) -> Shader {
+    open class func newVertexShader(_ source: String) -> Shader {
         return Shader(source: source, type: GLenum(GL_VERTEX_SHADER))
     }
     
-    public class func newFragmentShader(source: String) -> Shader {
+    open class func newFragmentShader(_ source: String) -> Shader {
         return Shader(source: source, type: GLenum(GL_FRAGMENT_SHADER))
     }
     
-    public class func basic300VertexShader() -> Shader {
+    open class func basic300VertexShader() -> Shader {
         return Shader(source: basic33VertexFunc, type: GLenum(GL_VERTEX_SHADER))
     }
     
-    public class func basic300FragmentShader() -> Shader {
+    open class func basic300FragmentShader() -> Shader {
         return Shader(source: basic33FragFunc, type: GLenum(GL_FRAGMENT_SHADER))
     }
 }
@@ -139,18 +139,18 @@ public class Shader {
 
 extension String {
     subscript(range: Range<Int>) -> String {
-        let start = startIndex.advancedBy(range.startIndex)
-        let end = startIndex.advancedBy(range.endIndex)
-        let range = Range<String.Index>(start: start, end: end)
-        return substringWithRange(range)
+        let start = characters.index(startIndex, offsetBy: range.lowerBound)
+        let end = characters.index(startIndex, offsetBy: range.upperBound)
+        let range = (start ..< end)
+        return substring(with: range)
     }
     
     init(length: Int, unsafeMutableBufferPointer: (UnsafeMutableBufferPointer<Int8>) -> Void) {
         var result: String? = nil
-        var info = [Int8](count: length+1, repeatedValue: 0)
-        info.withUnsafeMutableBufferPointer({ (inout p: UnsafeMutableBufferPointer<Int8>) in
+        var info = [Int8](repeating: 0, count: length+1)
+        info.withUnsafeMutableBufferPointer({ (p: inout UnsafeMutableBufferPointer<Int8>) in
             unsafeMutableBufferPointer(p)
-            result = String.fromCString(p.baseAddress)
+            result = String(cString: p.baseAddress!)
         })
         self = result == nil ? "" : result!
     }

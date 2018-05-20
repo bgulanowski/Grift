@@ -10,13 +10,13 @@ import Foundation
 import OpenGLES
 
 public protocol FramebufferAttachable {
-    func attachToFramebuffer(framebuffer: Framebuffer, attachmentPoint: GLenum) -> Void
+    func attachToFramebuffer(_ framebuffer: Framebuffer, attachmentPoint: GLenum) -> Void
 }
 
-public class Framebuffer : Bindable {
+open class Framebuffer : Bindable {
     
     var name: GLuint = 0
-    var colorAttachments = [FramebufferAttachable?](count: 16, repeatedValue: nil)
+    var colorAttachments = [FramebufferAttachable?](repeating: nil, count: 16)
     
     // TODO: depth and stencil attachments
     
@@ -35,7 +35,7 @@ public class Framebuffer : Bindable {
         name = 0
     }
     
-    public func setColorAttachment(attachment: FramebufferAttachable?, atIndex index: Int) {
+    open func setColorAttachment(_ attachment: FramebufferAttachable?, atIndex index: Int) {
         let attachmentPoint = GLenum(GL_COLOR_ATTACHMENT0) + GLenum(index)
         bind(false)
         if attachment == nil {
@@ -47,15 +47,15 @@ public class Framebuffer : Bindable {
         colorAttachments[index] = attachment
     }
     
-    public func colorAttachmentAtIndex(index: Int) -> FramebufferAttachable? {
+    open func colorAttachmentAtIndex(_ index: Int) -> FramebufferAttachable? {
         return colorAttachments[index]
     }
     
-    public func bind() {
+    open func bind() {
         bind(false)
     }
     
-    public func bind(forReading: Bool) {
+    open func bind(_ forReading: Bool) {
         glBindFramebuffer(GLenum(forReading ? GL_READ_FRAMEBUFFER : GL_DRAW_FRAMEBUFFER), name)
     }
 }

@@ -267,6 +267,7 @@
 				TargetAttributes = {
 					847661371C36082D00696B04 = {
 						CreatedOnToolsVersion = 7.2;
+						LastSwiftMigration = 0830;
 					};
 					847661411C36082D00696B04 = {
 						CreatedOnToolsVersion = 7.2;
@@ -502,6 +503,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -519,6 +521,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.lichen-labs.Grift";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};

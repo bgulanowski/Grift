@@ -88,10 +88,10 @@ public typealias Color = Float4
 public typealias Normal = Float3
 public typealias TexCoord = Float2
 
-public class Buffer<T:Countable> : Bindable {
+open class Buffer<T:Countable> : Bindable {
 
     var name: GLuint = 0
-    public let count: GLsizei
+    open let count: GLsizei
 
     var target: GLenum {
         return GLenum(0)
@@ -100,7 +100,7 @@ public class Buffer<T:Countable> : Bindable {
         return GLboolean(GL_FALSE)
     }
 
-    public var glType: GLenum {
+    open var glType: GLenum {
         return GLenum(0)
     }
     
@@ -108,7 +108,7 @@ public class Buffer<T:Countable> : Bindable {
         count = GLsizei(elements.count)
         glGenBuffers(1, &name)
         bind()
-        glBufferData(target, elements.count * sizeof(T), elements, GLenum(GL_STATIC_DRAW))
+        glBufferData(target, elements.count * MemoryLayout<T>.size, elements, GLenum(GL_STATIC_DRAW))
     }
     
     deinit {
@@ -121,7 +121,7 @@ public class Buffer<T:Countable> : Bindable {
         glBindBuffer(target, name)
     }
     
-    func submit(location: GLuint) {
+    func submit(_ location: GLuint) {
         bind()
         glVertexAttribPointer(location, GLint(T.count()), glType, normalize, 0, nil)
     }
@@ -138,11 +138,11 @@ extension GLuint : Countable {
     }
 }
 
-public class IndexBuffer : Buffer<GLuint> {
+open class IndexBuffer : Buffer<GLuint> {
     override var target: GLenum {
         return GLenum(GL_ELEMENT_ARRAY_BUFFER)
     }
-    override public var glType: GLenum {
+    override open var glType: GLenum {
         return GLenum(GL_INT)
     }
     override public init(elements: [GLuint]) {
@@ -150,11 +150,11 @@ public class IndexBuffer : Buffer<GLuint> {
     }
 }
 
-public class VertexBuffer<T:Countable> : Buffer<T> {
+open class VertexBuffer<T:Countable> : Buffer<T> {
     override var target: GLenum {
         return GLenum(GL_ARRAY_BUFFER)
     }
-    public override var glType: GLenum {
+    open override var glType: GLenum {
         return GLenum(GL_FLOAT)
     }
     public override init(elements: [T]) {
@@ -167,7 +167,7 @@ public typealias Point3Buffer = VertexBuffer<Point3>
 public typealias ColorBuffer = VertexBuffer<Color>
 public typealias TexCoordBuffer = VertexBuffer<TexCoord>
 
-public class NormalBuffer : VertexBuffer<Normal> {
+open class NormalBuffer : VertexBuffer<Normal> {
     override var normalize: GLboolean {
         return GLboolean(GL_TRUE)
     }

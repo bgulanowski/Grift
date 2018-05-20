@@ -24,16 +24,16 @@ public protocol ProgramSubmissible {
 }
 
 extension ProgramSubmissible {
-    func submit(location: GLint) {
+    func submit(_ location: GLint) {
         Self.submit1Func()(location, self)
     }
-    static func submitArray(array: [Self], location: GLint) {
+    static func submitArray(_ array: [Self], location: GLint) {
         Self.submit1VFunc()(location, GLsizei(array.count), array)
     }
 }
 
 extension Array where Element : ProgramSubmissible {
-    func submit(location: GLint) {
+    func submit(_ location: GLint) {
         Element.submitArray(self, location: location)
     }
 }
@@ -71,10 +71,10 @@ extension GLfloat : ProgramSubmissible {
 
 // MARK: -
 
-typealias GetActiveVariableFunc = (GLuint, GLuint, GLsizei, UnsafeMutablePointer<GLsizei>, UnsafeMutablePointer<GLint>, UnsafeMutablePointer<GLenum>, UnsafeMutablePointer<GLchar>) -> Void
+typealias GetActiveVariableFunc = (GLuint, GLuint, GLsizei, UnsafeMutablePointer<GLsizei>?, UnsafeMutablePointer<GLint>, UnsafeMutablePointer<GLenum>, UnsafeMutablePointer<GLchar>) -> Void
 typealias GetVariableLocationFunc = (GLuint, UnsafePointer<GLchar>) -> GLint
 
-public class Program {
+open class Program {
     
     static let UnknownLocation = GLint(-1)
     
@@ -110,7 +110,7 @@ public class Program {
     public convenience init() {
         var vertFunc: Shader!
         var fragFunc: Shader!
-        if EAGLContext.currentContext().API == .OpenGLES3 {
+        if EAGLContext.current().api == .openGLES3 {
             vertFunc = Shader.basic300VertexShader()
             fragFunc = Shader.basic300FragmentShader()
         }
@@ -121,8 +121,8 @@ public class Program {
         self.init(shaders: [vertFunc, fragFunc])
     }
     
-    public class func newProgramWithName(name: String) -> Program? {
-        if let vShader = Shader.newVertexShaderWithName(name), fShader = Shader.newFragmentShaderWithName(name) {
+    open class func newProgramWithName(_ name: String) -> Program? {
+        if let vShader = Shader.newVertexShaderWithName(name), let fShader = Shader.newFragmentShaderWithName(name) {
             return Program(shaders: [vShader, fShader])
         }
         else {
@@ -135,18 +135,18 @@ public class Program {
         name = 0
     }
     
-    public func use() {
+    open func use() {
         glUseProgram(name)
     }
     
-    public func submitBuffer<T>(buffer: Buffer<T>, name: String) {
+    open func submitBuffer<T>(_ buffer: Buffer<T>, name: String) {
         if let location = attribs[name]?.location {
             glEnableVertexAttribArray(GLuint(location))
             buffer.submit(GLuint(location))
         }
     }
     
-    public func submitTexture(texture: Texture, uniformName: String) {
+    open func submitTexture(_ texture: Texture, uniformName: String) {
         if let location = uniforms[uniformName]?.location {
             texture.submit(location)
         }
@@ -154,7 +154,7 @@ public class Program {
     
     // Convert GLchar, GLbyte, GLshort, GLsizei to GLint
     // Convert GLboolean, GLubyte, GLushort to GLuint
-    public func submitUniform<U:ProgramSubmissible>(value: U, uniformName: String) {
+    open func submitUniform<U:ProgramSubmissible>(_ value: U, uniformName: String) {
         if let location = uniforms[uniformName]?.location {
             value.submit(location)
         }
@@ -162,15 +162,15 @@ public class Program {
     
     // MARK: OpenGL/ES state queries
     
-    public func activeAttributeNames() -> [String] {
+    open func activeAttributeNames() -> [String] {
         return [String](attribs.keys)
     }
     
-    public func activeUniformNames() -> [String] {
+    open func activeUniformNames() -> [String] {
         return [String](uniforms.keys)
     }
     
-    public func getActiveAttributes() -> [Variable] {
+    open func getActiveAttributes() -> [Variable] {
         let maxLength = getMaxAttributeNameLength()
         var attributes = [Variable]()
         for i in 0 ..< Int(getNumberOfActiveAttributes()) {
@@ -181,7 +181,7 @@ public class Program {
         return attributes
     }
     
-    public func getActiveUniforms() -> [Variable] {
+    open func getActiveUniforms() -> [Variable] {
         let maxLength = getMaxUniformNameLength()
         var uniforms = [Variable]()
         for i in 0 ..< Int(getNumberOfActiveUniforms()) {
@@ -192,19 +192,19 @@ public class Program {
         return uniforms
     }
     
-    func getActiveAttributeAtIndex(index: GLuint, maxLength: GLint) -> Variable? {
+    func getActiveAttributeAtIndex(_ index: GLuint, maxLength: GLint) -> Variable? {
         return getActiveVariableAtIndex(index, maxLength: maxLength, getVariable: glGetActiveAttrib, getLocation: glGetAttribLocation)
     }
     
-    func getActiveUniformAtIndex(index: GLuint, maxLength: GLint) -> Variable? {
+    func getActiveUniformAtIndex(_ index: GLuint, maxLength: GLint) -> Variable? {
         return getActiveVariableAtIndex(index, maxLength: maxLength, getVariable: glGetActiveUniform, getLocation: glGetUniformLocation)
     }
     
-    func getActiveVariableAtIndex(index: GLuint, maxLength: GLint, getVariable: GetActiveVariableFunc, getLocation: GetVariableLocationFunc) -> Variable? {
+    func getActiveVariableAtIndex(_ index: GLuint, maxLength: GLint, getVariable: @escaping GetActiveVariableFunc, getLocation: GetVariableLocationFunc) -> Variable? {
         var size: GLint = 0
         var type: GLenum = 0
         let variableName = String(length: Int(maxLength), unsafeMutableBufferPointer: { (p: UnsafeMutableBufferPointer<Int8>) in
-            getVariable(self.name, index, maxLength, nil, &size, &type, p.baseAddress)
+            getVariable(self.name, index, maxLength, nil, &size, &type, p.baseAddress!)
         })
         let location = getVariableLocation(variableName, getLocation: getLocation)
         return location == Program.UnknownLocation ? nil : Variable(name: variableName, type: type, size: size, location: location)
@@ -242,21 +242,21 @@ public class Program {
         return getProgramValue(GLenum(GL_ACTIVE_ATTRIBUTE_MAX_LENGTH))
     }
     
-    func getProgramValue(value: GLenum) -> GLint {
+    func getProgramValue(_ value: GLenum) -> GLint {
         var result: GLint = 0
         glGetProgramiv(name, value, &result )
         return result
     }
     
-    func getLocationsForAttributes(attributes: [String]) -> [String:GLint] {
+    func getLocationsForAttributes(_ attributes: [String]) -> [String:GLint] {
         return getLocationsForStrings(attributes, function: getLocationOfAttribute)
     }
     
-    func getLocationsForUniforms(uniforms: [String]) -> [String:GLint] {
+    func getLocationsForUniforms(_ uniforms: [String]) -> [String:GLint] {
         return getLocationsForStrings(uniforms, function: getLocationOfUniform)
     }
     
-    func getLocationsForStrings(strings: [String], function: (String) -> GLint) -> [String:GLint] {
+    func getLocationsForStrings(_ strings: [String], function: (String) -> GLint) -> [String:GLint] {
         var results = [String:GLint]()
         for attribute in strings {
             results[attribute] = function(attribute)
@@ -264,15 +264,15 @@ public class Program {
         return results
     }
     
-    public func getLocationOfAttribute(attribute: String) -> GLint {
+    open func getLocationOfAttribute(_ attribute: String) -> GLint {
         return getVariableLocation(attribute, getLocation: glGetAttribLocation)
     }
     
-    public func getLocationOfUniform(uniform: String) -> GLint {
+    open func getLocationOfUniform(_ uniform: String) -> GLint {
         return getVariableLocation(uniform, getLocation: glGetUniformLocation)
     }
     
-    func getVariableLocation(variable: String, getLocation: GetVariableLocationFunc) -> GLint {
+    func getVariableLocation(_ variable: String, getLocation: GetVariableLocationFunc) -> GLint {
         var result: GLint = 0
         variable.withCString { (p: UnsafePointer<Int8>) in
             result = getLocation(self.name, p)

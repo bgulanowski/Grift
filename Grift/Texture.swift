@@ -39,12 +39,12 @@ public struct Colorf {
         var g_: CGFloat = 0.0
         var b_: CGFloat = 0.0
         var a_: CGFloat = 0.0
-        UIColor.redColor().getRed(&r_, green: &g_, blue: &b_, alpha: &a_)
+        UIColor.red.getRed(&r_, green: &g_, blue: &b_, alpha: &a_)
         (r, g, b, a) = (GLfloat(r_), GLfloat(g_), GLfloat(b_), GLfloat(a_))
     }
 }
 
-public class Texture : Bindable, FramebufferAttachable {
+open class Texture : Bindable, FramebufferAttachable {
     
     let size: CGSize
     let type: GLenum
@@ -52,28 +52,28 @@ public class Texture : Bindable, FramebufferAttachable {
     var name: GLuint = 0
     
     // TODO: inefficient; better to track dirty state, and update all dirty params at once in bind()
-    public var minFilter: GLint {
+    open var minFilter: GLint {
         didSet {
             bind()
             setParameter(GL_TEXTURE_MIN_FILTER, value: minFilter)
         }
     }
     
-    public var magFilter: GLint {
+    open var magFilter: GLint {
         didSet {
             bind()
             setParameter(GL_TEXTURE_MAG_FILTER, value: magFilter)
         }
     }
     
-    public var wrapS: GLint {
+    open var wrapS: GLint {
         didSet {
             bind()
             setParameter(GL_TEXTURE_WRAP_S, value: wrapS)
         }
     }
     
-    public var wrapT: GLint {
+    open var wrapT: GLint {
         didSet {
             bind()
             setParameter(GL_TEXTURE_WRAP_T, value: wrapT)
@@ -98,7 +98,7 @@ public class Texture : Bindable, FramebufferAttachable {
     }
     
     // TODO: replace NSData with a Swift array
-    convenience public init(size: CGSize, type: GLenum, format: GLenum, data: NSData?) {
+    convenience public init(size: CGSize, type: GLenum, format: GLenum, data: Data?) {
         self.init(size: size, type: type, format: format)
         loadTexture(data)
     }
@@ -114,16 +114,16 @@ public class Texture : Bindable, FramebufferAttachable {
         name = 0
     }
 
-    public convenience init(size: CGSize, data: NSData?) {
+    public convenience init(size: CGSize, data: Data?) {
         self.init(size: size, type: GLenum(GL_UNSIGNED_BYTE), format: GLenum(GL_RGBA), data: data)
     }
     
     public convenience init(size: CGSize, color: UIColor) {
         let count = size_t(size.width) * size_t(size.height)
-        let colors = [Colorf](count: count, repeatedValue: Colorf(color: color))
-        var data: NSData!
+        let colors = [Colorf](repeating: Colorf(color: color), count: count)
+        var data: Data!
         colors.withUnsafeBufferPointer { (p: UnsafeBufferPointer<Colorf>) in
-            data = NSData(bytes: p.baseAddress, length: p.count * sizeof(Colorf))
+            data = Data(bytes: p.baseAddress!, count: p.count * MemoryLayout<Colorf>.size)
         }
         self.init(size: size, data: data)
     }
@@ -133,28 +133,29 @@ public class Texture : Bindable, FramebufferAttachable {
         glBindTexture(GLenum(GL_TEXTURE_2D), GLuint(name))
     }
     
-    func submit(location: GLint) {
+    func submit(_ location: GLint) {
         // TODO: support other texture units
         glActiveTexture(GLenum(GL_TEXTURE0))
         bind()
         glUniform1i(location, GLint(0))
     }
     
-    public func setParameter(parameter: GLint, value: GLint) {
+    open func setParameter(_ parameter: GLint, value: GLint) {
         // TODO: target should support texture rectangle on OS X
         glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(parameter), value);
     }
     
-    public func attachToFramebuffer(framebuffer: Framebuffer, attachmentPoint: GLenum) {
+    open func attachToFramebuffer(_ framebuffer: Framebuffer, attachmentPoint: GLenum) {
         // TODO: `target` (first arg) might need to support GL_READ_FRAMEBUFFER
         // TODO: `texTarget` (third arg) should be whatever was used to create bind/load the texture in createTexture()
         glFramebufferTexture2D(GLenum(GL_FRAMEBUFFER), attachmentPoint, GLenum(GL_TEXTURE_2D), name, 0)
     }
     
-    func loadTexture(data: NSData?) {
+    func loadTexture(_ data: Data?) {
         glBindTexture(GLenum(GL_TEXTURE_2D), name)
-        let bytes: UnsafePointer<Void> = data != nil ? data!.bytes : UnsafePointer<Void>()
-        glTexImage2D(GLenum(GL_TEXTURE_2D), 0, GL_RGBA, GLsizei(size.width), GLsizei(size.height), 0, format, type, bytes)
+        data?.withUnsafeBytes({ (bytes) in
+            glTexImage2D(GLenum(GL_TEXTURE_2D), 0, GL_RGBA, GLsizei(size.width), GLsizei(size.height), 0, format, type, bytes)
+        })
     }
     
     func generateMipmap() {
@@ -164,22 +165,22 @@ public class Texture : Bindable, FramebufferAttachable {
 }
 
 public extension Texture {
-    public class func textureWithURL(url: NSURL) -> Texture? {
+    public class func textureWithURL(_ url: URL) -> Texture? {
         var texture: Texture?
         do {
-            let info = try GLKTextureLoader.textureWithContentsOfURL(url, options: nil)
+            let info = try GLKTextureLoader.texture(withContentsOf: url, options: nil)
             texture = Texture(name: info.name, size: CGSize(width: Int(info.width), height: Int(info.height)), type: GLenum(0), format: GLenum(0))
         }
         catch {
             // no idea what to do, don't really care
-            texture = Texture(size: CGSize(width: 1.0, height: 1.0), color: UIColor.greenColor())
+            texture = Texture(size: CGSize(width: 1.0, height: 1.0), color: UIColor.green)
         }
         return texture
     }
 
-    public class func textureWithName(name: String, filetype: String) -> Texture? {
+    public class func textureWithName(_ name: String, filetype: String) -> Texture? {
         var texture: Texture?
-        if let url = NSBundle.mainBundle().URLForResource(name, withExtension: filetype) {
+        if let url = Bundle.main.url(forResource: name, withExtension: filetype) {
             texture = textureWithURL(url)
         }
         return texture
