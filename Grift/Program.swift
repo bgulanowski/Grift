@@ -110,7 +110,7 @@ open class Program {
     public convenience init() {
         var vertFunc: Shader!
         var fragFunc: Shader!
-        if EAGLContext.current().api == .openGLES3 {
+        if EAGLContext.current()?.api == .openGLES3 {
             vertFunc = Shader.basic300VertexShader()
             fragFunc = Shader.basic300FragmentShader()
         }

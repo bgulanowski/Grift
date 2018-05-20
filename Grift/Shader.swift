@@ -139,10 +139,10 @@ open class Shader {
 
 extension String {
     subscript(range: Range<Int>) -> String {
-        let start = characters.index(startIndex, offsetBy: range.lowerBound)
-        let end = characters.index(startIndex, offsetBy: range.upperBound)
+        let start = index(startIndex, offsetBy: range.lowerBound)
+        let end = index(startIndex, offsetBy: range.upperBound)
         let range = (start ..< end)
-        return substring(with: range)
+        return String(self[range])
     }
     
     init(length: Int, unsafeMutableBufferPointer: (UnsafeMutableBufferPointer<Int8>) -> Void) {
